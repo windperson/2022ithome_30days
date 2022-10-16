@@ -102,7 +102,7 @@ Example: Url Shortener
 ### Dispatch Pattern
 
 https://github.com/OrleansContrib/DesignPatterns/blob/master/Dispatcher.md
-Example: Two-phase commit implementation
+Example: Online polling system
 
 ### Observer Pattern
 
