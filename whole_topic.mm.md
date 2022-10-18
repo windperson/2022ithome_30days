@@ -61,8 +61,8 @@ https://docs.microsoft.com/en-us/dotnet/orleans/grains/stateless-worker-grains
 https://docs.microsoft.com/en-us/dotnet/orleans/host/grain-directory
 ##### Azure Table
 ##### Redis
-##### Consul (v4.0+)
-https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Consul/4.0.0-preview2
+##### Consul (v7+)
+https://www.nuget.org/packages/Microsoft.Orleans.Clustering.Consul
 
 ## *運營(ops)功能*
 ### Hosting Environment
@@ -104,15 +104,15 @@ Example: Url Shortener
 https://github.com/OrleansContrib/DesignPatterns/blob/master/Dispatcher.md
 Example: Online polling system
 
-### Observer Pattern
-
-https://github.com/OrleansContrib/DesignPatterns/blob/master/Observer.md
-Example: Chatting system backend
-
 ### Cadence Pattern
 
 https://github.com/OrleansContrib/DesignPatterns/blob/master/Cadence.md
 Example: IoT sensor data processing
+
+### Observer Pattern
+
+https://github.com/OrleansContrib/DesignPatterns/blob/master/Observer.md
+Example: Chatting system backend
 
 ### Registry Pattern
 
