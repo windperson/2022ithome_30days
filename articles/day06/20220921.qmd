@@ -1,10 +1,20 @@
+---
+format:
+  html:
+    code-overflow: scroll
+  docx:
+    highlight-style: github
+editor:
+  render-on-save: true
+---
+
 # 第一個Helloworld專案的建置與執行
 
 ## HelloWorld Grain的執行架構
 
 HelloWorld專案程式碼完成後的執行架構將如下圖所示：
 
-```mermaid
+```{mermaid}
 flowchart
     client -.- tcpip01("TCP/IP")
     tcpip01 -.-> server
@@ -26,10 +36,10 @@ flowchart
         helloworld_grain == "5. return\nSayHello()\nresult" ==>ihello_proxy --> rpc_result(["#quot;Hello World!#quot;"])
         connected_client ----->|"call\nClose()"| disconnected_client["Orleans Client\n(disconnected)"] -->|"call Dispose()"|dispoed[Disposed client]
     end
-
 ```
 
 此為Client端和Silo後端各自從程式起動到結束的執行流程，其中最重要的部分是Client端呼叫Silo後端Grain RPC方法的過程：
+
 1. Client端呼叫Orleans Client端物件的`Connect()`方法取得和Silo後端的TCP/IP連線。
 2. Client端呼叫Orleans Client端物件的`GetGrain<T>()`方法取得Grain在Client端的RPC Proxy實例。
 3. Client端呼叫Grain RPC Proxy實例的RPC方法`SayHello()`，此時Grain RPC Proxy實例會將原本C#的非同步呼叫轉換成RPC方法的底層呼叫機制，透過TCP/IP網路傳送呼叫參數給距離最近的Silo後端。
@@ -53,10 +63,11 @@ flowchart
         * [Microsoft.Extensions.Logging.Debug](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Debug)
     * **RpcDemo.Client.Console**專案：示範呼叫Orleans RPC方法的Client專案，安裝套件有：
         * [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client)
-2. 用Visual Studio Code開啟專案根目錄，如果有提示增加設定檔案：
+2. 用Visual Studio Code開啟專案根目錄，如果有提示增加設定檔案：  
     ![](./vscode_prompt_add_files.png)  
    選Yes，因為等下我們會修改它以便在Visual Studio Code內啟動除錯階段來跑。
 3. 在**RpcDemo.Interfaces.Hello**專案內新增一個 `IHelloGrain.cs` 檔案，將Day03設計的RPC介面程式碼貼上：
+    
     ```csharp
     using System.Threading.Tasks;
     using Orleans;
@@ -67,8 +78,10 @@ flowchart
     {
         Task<string> SayHello(string greeting);
     }
-    ``` 
+    ```
+
 4. 在**RpcDemo.Grains.Greeting**專案內新增一個 `HelloGrain.cs` 檔案，將Day03設計的Grain實作程式碼貼上：
+    
     ```csharp
     using System.Threading.Tasks;
     using Orleans;
@@ -84,7 +97,9 @@ flowchart
         }
     }
     ```
+
 5.  將**RpcDemo.Hosting.Console**專案中原本的 `Program.cs` 修改為：
+    
     ```csharp
     using System.Net;
     using Microsoft.Extensions.Logging;
@@ -128,8 +143,10 @@ flowchart
     await siloHost.StopAsync().ConfigureAwait(false);
     Console.WriteLine("===\r\nSilo shutdown complete, exiting...\r\n===");
     Environment.Exit(0);
-    ```   
+    ```
+
 6.  將**RpcDemo.Client.Console**專案中原本的 `Program.cs` 修改為：
+    
     ```csharp
     using Orleans;
     using Orleans.Configuration;
@@ -167,7 +184,9 @@ flowchart
     await client.Close();
     client.Dispose();
     ```
-7. 將Visual Stuido Code的.vscode目錄內的`task.json`改為下列內容：
+
+7. 將Visual Studio Code的.vscode目錄內的`task.json`改為下列內容：
+    
     ```json
     {
       "version": "2.0.0",
@@ -208,7 +227,9 @@ flowchart
       ]
     }
     ```
+
 8. 將Visual Stuido Code的.vscode目錄內的`launch.json`改為下列內容：
+    
     ```json
     {
       "version": "0.2.0",
@@ -241,21 +262,22 @@ flowchart
     }
     ```
 
+
 ## 執行測試
 
-1. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Server**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Silo。
+1. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Server**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Silo。  
    ![](launch_server.png)  
-   可能會出現是否要允許防火牆通過，請選擇**允許存取**。
+   可能會出現是否要允許防火牆通過，請選擇**允許存取**。  
    ![](allow_firewall.png)  
-   等到Visual Studio Code的Terminal視窗出現如下圖的螢幕提示時，表示Server端程式已經啟動完成。
+   等到Visual Studio Code的Terminal視窗出現如下圖的螢幕提示時，表示Server端程式已經啟動完成。  
    ![](server_started.png)
-2. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Client**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Client。
-   ![](launch_client.png)    
-   在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。 
+2. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Client**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Client。  
+   ![](launch_client.png)  
+   在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。  
    ![](client_start01.png)  
-   然後就會顯示呼叫Grain的SayHello() RPC方法的結果：
+   然後就會顯示呼叫Grain的SayHello() RPC方法的結果：  
    ![](client_start02.png)
-3. 要結束此執行範例，在Client的命令列視窗按任意鍵停止Client端程式，然後在Visual Studio的Terminal視窗按下**Ctrl+C**停止Server端程式。
+3. 要結束此執行範例，在Client的命令列視窗按任意鍵停止Client端程式，然後在Visual Studio的Terminal視窗按下**Ctrl+C**停止Server端程式。  
     ![](shutdown_server.png)
 
 整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day06
