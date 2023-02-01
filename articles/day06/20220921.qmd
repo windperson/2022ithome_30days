@@ -3,7 +3,7 @@ lang: zh
 format:
   gfm:
     wrap: preserve
-    mermaid-format: svg
+    mermaid-format: png
   html:
     code-overflow: scroll
   docx:
