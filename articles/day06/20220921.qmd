@@ -1,9 +1,14 @@
 ---
+lang: zh
 format:
+  gfm:
+    wrap: preserve
+    mermaid-format: svg
   html:
     code-overflow: scroll
   docx:
     highlight-style: github
+    keep-md: false
 editor:
   render-on-save: true
 ---
@@ -265,20 +270,30 @@ flowchart
 
 ## 執行測試
 
-1. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Server**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Silo。  
-   ![](launch_server.png)  
-   可能會出現是否要允許防火牆通過，請選擇**允許存取**。  
-   ![](allow_firewall.png)  
-   等到Visual Studio Code的Terminal視窗出現如下圖的螢幕提示時，表示Server端程式已經啟動完成。  
+1. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Server**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Silo。
+   
+   ![](launch_server.png)
+
+   可能會出現是否要允許防火牆通過，請選擇**允許存取**。
+
+   ![](allow_firewall.png)
+
+   等到Visual Studio Code的Terminal視窗出現如下圖的螢幕提示時，表示Server端程式已經啟動完成。
+
    ![](server_started.png)
-2. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Client**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Client。  
-   ![](launch_client.png)  
-   在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。  
-   ![](client_start01.png)  
-   然後就會顯示呼叫Grain的SayHello() RPC方法的結果：  
+2. 切換到Visual Studio Code的**Debug**頁籤，選取**Launch Client**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Client。
+   
+   ![](launch_client.png)
+
+   在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。
+   ![](client_start01.png)
+
+   然後就會顯示呼叫Grain的SayHello() RPC方法的結果：
+
    ![](client_start02.png)
-3. 要結束此執行範例，在Client的命令列視窗按任意鍵停止Client端程式，然後在Visual Studio的Terminal視窗按下**Ctrl+C**停止Server端程式。  
-    ![](shutdown_server.png)
+3. 要結束此執行範例，在Client的命令列視窗按任意鍵停止Client端程式，然後在Visual Studio的Terminal視窗按下**Ctrl+C**停止Server端程式。
+    
+   ![](shutdown_server.png)
 
 整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day06
 
