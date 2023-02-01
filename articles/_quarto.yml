@@ -1,0 +1,21 @@
+project:
+  title: "Microsoft Orleans雲原生開發框架從小白到大神"
+  render:
+    - "*.qmd"
+    - "!index.md"
+
+lang: zh
+format:
+  html:
+    code-overflow: scroll
+  docx:
+    highlight-style: github
+    keep-md: false
+  gfm:
+    wrap: preserve
+    output-file: index.md
+editor:
+  render-on-save: true
+
+
+

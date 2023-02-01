@@ -1,17 +1,3 @@
----
-lang: zh
-format:
-  html:
-    code-overflow: scroll
-  docx:
-    highlight-style: github
-    keep-md: false
-  gfm:
-    wrap: preserve
-editor:
-  render-on-save: true
----
-
 # Microsoft Orleans的Grain組成結構與宣告方式
 
 ## Grain的組成結構

@@ -7,11 +7,29 @@ HelloWorld專案程式碼完成後的執行架構將如下圖所示：
 
 <div>
 
-<p>
-
-<img src="20220921_files\figure-commonmark\mermaid-figure-1.png" style="width:11.51in;height:11.63in" />
-
-</p>
+``` mermaid
+flowchart
+    client -.- tcpip01("TCP/IP")
+    tcpip01 -.-> server
+    server -.- tcpip02("TCP/IP")
+    tcpip02 -.-> client
+    style tcpip01 stroke-dasharray: 5 5
+    style tcpip02 stroke-dasharray: 5 5
+    subgraph server [Silo Host]
+        SiloHostBuilder -->|"Build()\nthen\nStartAsync()"| silo["Orleans Silo\n(started)"]
+        silo -->|"Waiting\nincoming\nRPC request"| silo
+        silo == "4. activate\nHelloworldGrain\ninstance" ==o helloworld_grain(HelloWorld Grain)
+        silo -- "call\nStopAsync()" ----> stopped["stopped Silo"]
+    end
+    subgraph client [Console Client]
+        ClientBuilder -->|"Build()"| orleans_client[Orleans Client]
+        orleans_client -->|"1. Connect()"| connected_client["Orleans Client\n(connected)"]
+        connected_client == "2. call\nGetGrain#lt;IHelloGrain#gt;(0)\n\n\nget\nIHelloGrain\nRPC Proxy instnace" ==> ihello_proxy[[IHelloGrain Proxy]]           
+        ihello_proxy == "3. call\n SayHello()" ==>silo
+        helloworld_grain == "5. return\nSayHello()\nresult" ==>ihello_proxy --> rpc_result(["#quot;Hello World!#quot;"])
+        connected_client ----->|"call\nClose()"| disconnected_client["Orleans Client\n(disconnected)"] -->|"call Dispose()"|dispoed[Disposed client]
+    end
+```
 
 </div>
 
@@ -261,6 +279,7 @@ HelloWorld專案程式碼完成後的執行架構將如下圖所示：
     ![](launch_client.png)
 
     在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。
+
     ![](client_start01.png)
 
     然後就會顯示呼叫Grain的SayHello() RPC方法的結果：

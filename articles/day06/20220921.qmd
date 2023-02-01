@@ -1,25 +1,11 @@
----
-lang: zh
-format:
-  gfm:
-    wrap: preserve
-    mermaid-format: png
-  html:
-    code-overflow: scroll
-  docx:
-    highlight-style: github
-    keep-md: false
-editor:
-  render-on-save: true
----
-
 # 第一個Helloworld專案的建置與執行
 
 ## HelloWorld Grain的執行架構
 
 HelloWorld專案程式碼完成後的執行架構將如下圖所示：
 
-```{mermaid}
+::: {.content-visible when-format="markdown"}
+```mermaid
 flowchart
     client -.- tcpip01("TCP/IP")
     tcpip01 -.-> server
@@ -42,6 +28,11 @@ flowchart
         connected_client ----->|"call\nClose()"| disconnected_client["Orleans Client\n(disconnected)"] -->|"call Dispose()"|dispoed[Disposed client]
     end
 ```
+:::
+
+::: {.content-hidden unless-format="docx"}
+![](./mermaid-diagram.png)
+:::
 
 此為Client端和Silo後端各自從程式起動到結束的執行流程，其中最重要的部分是Client端呼叫Silo後端Grain RPC方法的過程：
 
@@ -286,6 +277,7 @@ flowchart
    ![](launch_client.png)
 
    在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。
+   
    ![](client_start01.png)
 
    然後就會顯示呼叫Grain的SayHello() RPC方法的結果：

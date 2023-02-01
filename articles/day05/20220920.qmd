@@ -1,17 +1,3 @@
----
-lang: zh
-format:
-  html:
-    code-overflow: scroll
-  docx:
-    highlight-style: github
-    keep-md: false
-  gfm:
-    wrap: preserve
-editor:
-  render-on-save: true
----
-
 # Orleans需使用的NuGet套件及RPC Code Gen解說
 
 ## Orleans的各種C#專案所需Nuget套件

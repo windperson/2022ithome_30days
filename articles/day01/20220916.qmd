@@ -1,17 +1,3 @@
----
-lang: zh
-format:
-  html:
-    code-overflow: scroll
-  docx:
-    highlight-style: github
-    keep-md: false
-  gfm:
-    wrap: preserve
-editor:
-  render-on-save: true
----
-
 # Microsoft Orleans介紹
 
 Microsoft Orleans (以下簡稱Orleans)原是微軟研究院為了實現分散式運算理論的 Virtual Actor Model 架構，所研發出的獨家 .NET Framework 分散式運算框架實現，在需要能夠即時容量擴展以及開發能夠依使用者量需要彈性延伸的應用功能場景，如網路遊戲微軟 Xbox 上的第一人稱射擊遊戲 Halo 上廣泛使用。在 2015 年Orleans以開源 MIT 授權模式釋出之後，一般開發者也可使用；在 2018 年支援跨平台 .NET Core 的 version 2.0 版發布後，所有可跑 .NET Core/ .NET 5+ 的運算平台上都可以運行。
