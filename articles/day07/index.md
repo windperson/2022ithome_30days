@@ -19,7 +19,7 @@
 - [Visual Studio Code](https://code.visualstudio.com/Download)
 - Visual Studio Code的[C#擴充套件](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)。
 - Visual Studio Code的[.NET Interactive Notebooks](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.dotnet-interactive-vscode)擴充套件。
-- [PowerShell Core (v7.+)](https://learn.microsoft.com/en-us/powershell/)，在目前[Windows, macOS, Linux各種主流版本發佈的作業系統安裝]()都有支援。
+- [PowerShell Core (v7.+)](https://learn.microsoft.com/powershell)，在目前[Windows, macOS, Linux各種主流版本發佈的作業系統安裝]()都有支援。
 
 ### 建立 .NET Interactive Notebooks 並進行測試
 
@@ -36,6 +36,8 @@
     ![](open_new_notebook04.png)
 
 在Notebook檔案中，可以打程式碼按 **Ctrl + Enter** 執行程式的UI部分，以下簡稱『Code Cell』以方便進行說明。
+
+
 
 #### 使用 .NET Interactive Notebooks 驗證Grain實作專案RPC的功能：
 
@@ -66,14 +68,14 @@
     using Orleans.Hosting;
     ```
 
-4.  由於 .NET Interactive的底層C#實作是使用[C# Script(.csx檔)](https://learn.microsoft.com/en-us/archive/msdn-magazine/2016/january/essential-net-csharp-scripting)，不支援自定義命名空間，因此我們定義RPC介面和Grain實作類別不以把程式碼寫在『Code Cell』裡的方式，而是在Code Cell內用PowerShell命令來呼叫dotnet CLI編譯先前已經定義好的Grain實作類別專案：
+4.  由於 .NET Interactive的底層C#實作是使用[C# Script(.csx檔)](https://learn.microsoft.com/archive/msdn-magazine/2016/january/essential-net-csharp-scripting)，不支援自定義命名空間，因此我們定義RPC介面和Grain實作類別不以把程式碼寫在『Code Cell』裡的方式，而是在Code Cell內用PowerShell命令來呼叫dotnet CLI編譯建置先前已經定義好的Grain實作類別專案：
 
     ``` powershell
     #!pwsh
     dotnet build ../src/Grains/RpcDemo.Grains.Greeting/RpcDemo.Grains.Greeting.csproj --nologo --verbosity quiet
     ```
 
-    [魔術命令(magic command)](https://github.com/dotnet/interactive/blob/main/docs/magic-commands.md)`#!pwsh`表示Code Cell中該標記之後的內容是使用PowerShell來解譯/執行的命令。
+    [魔術命令(magic command)](https://github.com/dotnet/interactive/blob/main/docs/magic-commands.md)『`#!pwsh`』表示此Code Cell中，該標記之後的內容是使用PowerShell來解譯/執行的命令。
 
 5.  接在後面再建立一個『Code Cell』輸入以下內容，以便載入編譯好的Grain實作類別：
 
@@ -98,7 +100,7 @@
         });
     ```
 
-    Microsoft Orleans框架提供一個[`UseOrleans()`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.generichostextensions.useorleans)擴充方法來整合至ASP.NET Core的web服務框架/[.NET Generic Host](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/generic-host)中執行Silo的服務實體，而餵給該方法的Lambda敘述式參數中，第一行[`UseLocalhostClustering()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.corehostingextensions.uselocalhostclustering)設定Silo使用本機端測試叢集，第二行呼叫`SiloBuilder`的[`ConfigureApplicationParts()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.silobuilderextensions.configureapplicationparts)擴充方法來載入`HelloGrain`實作類別的Assembly，並且使用另一個[`WithReferences()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.applicationpartmanagerextensions.withreferences)擴充方法來載入該Grain實作類別的程式中有用到的其他相依類別。
+    Microsoft Orleans框架提供一個[`UseOrleans()`](https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.generichostextensions.useorleans)擴充方法來整合至ASP.NET Core的web服務框架/[.NET Generic Host](https://learn.microsoft.com/aspnet/core/fundamentals/host/generic-host)中執行Silo的服務實體，而餵給該方法的Lambda敘述式參數中，第一行[`UseLocalhostClustering()`](https://learn.microsoft.com/dotnet/api/orleans.hosting.corehostingextensions.uselocalhostclustering)設定Silo使用本機端測試叢集，第二行呼叫`SiloBuilder`的 [`ConfigureApplicationParts()`](https://learn.microsoft.com/dotnet/api/orleans.hosting.silobuilderextensions.configureapplicationparts) 擴充方法來載入`HelloGrain`實作類別的Assembly，並且使用另一個 [`WithReferences()`](https://learn.microsoft.com/dotnet/api/orleans.applicationpartmanagerextensions.withreferences) 擴充方法來載入該Grain實作類別的程式中有用到的其他相依類別。  
     這裡要注意的是，由於[.NET Interactive底層的Nested Kernel機制](https://github.com/dotnet/interactive/blob/main/docs/kernels-overview.md)，所以在.NET Interactive Notebook中宣告的SiloBuilder除了要宣告載入Grain實作類別之外，RPC介面的Interface型別也得要明確寫出載入宣告。
 
 7.  然後上述的配置無誤的話，呼叫hostBuilder的`Build()`建置方法來產生一個Generic Host實體，並且呼叫StartAsync()方法來啟動承載本機Silo測試叢集的.NET Generic Host服務實體：
@@ -108,14 +110,14 @@
     await host.StartAsync();
     ```
 
-8.  再來我們開始配置Orleans呼叫RPC客戶端的[`ClientBuilder`](https://docs.microsoft.com/en-us/dotnet/api/orleans.clientbuilder)程式碼：
+8.  再來我們開始配置Orleans呼叫RPC客戶端的[`ClientBuilder`](https://docs.microsoft.com/dotnet/api/orleans.clientbuilder)程式碼：
 
     ``` csharp
     var clientBuilder = new ClientBuilder().UseLocalhostClustering();
     clientBuilder.ConfigureApplicationParts(parts=>parts.AddApplicationPart(typeof(IHelloGrain).Assembly));
     ```
 
-    與Server端類似，在Client端也有個[`UseLocalhostClustering()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.clientbuilderextensions.uselocalhostclustering)擴充方法設定連結本機端測試叢集的Silo服務，然後也有相對應載入RPC介面的Assembly的機制。
+    與Server端類似，在Client端也有個[`UseLocalhostClustering()`](https://learn.microsoft.com/dotnet/api/orleans.clientbuilderextensions.uselocalhostclustering)擴充方法設定連結本機端測試叢集的Silo服務，然後也有相對應載入RPC介面的Assembly的機制。
 
 9.  配置無誤的話，呼叫`Build()`建置方法產生Orleans Client端物件：
 
@@ -142,8 +144,8 @@
     display(greeting);
     ```
 
-    最後一行的 `display()` 是[.NET Interactive Notebook C# Kernel的特殊函式可印出變數值](https://github.com/dotnet/interactive/blob/main/docs/display-output-csharp.md)，執行的結果如下圖所示：  
-    ![](run_rpc_result.png)
+    這裡要注意的是，最後一行的 `display()` 是 [.NET Interactive Notebook C# Kernel的特殊函式可印出變數值](https://github.com/dotnet/interactive/blob/main/docs/display-output-csharp.md)，執行的結果如下圖所示：  
+    ![](./run_rpc_result.png)
 
 13. 呼叫結束後，如果RPC proxy不再使用時，關閉Client端連線：
 
@@ -158,7 +160,7 @@
     ```
 
 以上是使用 .NET Interactive Notebook 來撰寫Orleans的範例，這個範例可直接從GitHub的預覽網頁上看到：  
-https://github.com/windperson/OrleansRpcDemo/blob/day07/notebooks/verify_HelloGrain.ipynb
+<https://github.com/windperson/OrleansRpcDemo/blob/day07/notebooks/verify_HelloGrain.ipynb>
 
 ------------------------------------------------------------------------
 

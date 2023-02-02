@@ -89,88 +89,90 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
    
    其中 **Microsoft.Orleans.Runtime.Abstractions** 套件是用於提供Grain State宣告需要用的 [`PersistentStateAttribute`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.persistentstateattribute) 屬性(Attribute)和 [`IPersistentState<TState>`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.ipersistentstate-1) 用於依賴注入的介面。
 4. 定義記數器的RPC介面，在 **RpcDemo.Interfaces.Counter** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **ICounterGrain.cs**：
-   ```csharp
-   using Orleans;
-
-   namespace RpcDemo.Interfaces.Counter;
-
-   public interface ICounterGrain : IGrainWithGuidKey
-   {
-     Task<int> GetCountAsync();
-     Task IncrementAsync();
-     Task ResetAsync();
-   }
-   ```
+    
+    ```csharp
+    using Orleans;
+ 
+    namespace RpcDemo.Interfaces.Counter;
+ 
+    public interface ICounterGrain : IGrainWithGuidKey
+    {
+      Task<int> GetCountAsync();
+      Task IncrementAsync();
+      Task ResetAsync();
+    }
+    ```
 5. 記數器Grain的實作，在 **RpcDemo.Grains.Counters** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **CounterGrain.cs**：
-   ```csharp
-   using Microsoft.Extensions.Logging;
-   using Orleans;
-   using Orleans.Runtime;
-   using RpcDemo.Interfaces.Counter;
+    
+    ```csharp
+    using Microsoft.Extensions.Logging;
+    using Orleans;
+    using Orleans.Runtime;
+    using RpcDemo.Interfaces.Counter;
+ 
+    namespace RpcDemo.Grains.Counters;
+ 
+    public class CounterGrain : Grain, ICounterGrain
+    {
+        private readonly ILogger<CounterGrain> _logger;
+        private readonly IPersistentState<CounterState> _counterStore;
+ 
+        public CounterGrain(
+            [PersistentState("counter_grain", "demo_counters")] IPersistentState<CounterState> counterStore,
+            ILogger<CounterGrain> logger)
+        {
+            _logger = logger;
+            _counterStore = counterStore;
+            logger.LogInformation("CounterGrain created");
+        }
+        
+        public override async Task OnActivateAsync()
+        {
+            await base.OnActivateAsync();
+            _logger.LogInformation("CounterGrain activated");
+            _logger.LogInformation("Current Count={Count}", _counterStore.State.Count);
+        }
+        
+        public override async Task OnDeactivateAsync()
+        {
+            //NOTE: This is not always being called
+            await _counterStore.WriteStateAsync();
+            await base.OnDeactivateAsync();
+            _logger.LogInformation("CounterGrain deactivated");
+        }
+        
+        #region ICounterGrain implementation
+ 
+        public Task<int> GetCountAsync()
+        {
+            _logger.LogInformation("GetCountAsync called");
+            return Task.FromResult(_counterStore.State.Count);
+        }
 
-   namespace RpcDemo.Grains.Counters;
-
-   public class CounterGrain : Grain, ICounterGrain
-   {
-       private readonly ILogger<CounterGrain> _logger;
-       private readonly IPersistentState<CounterState> _counterStore;
-
-       public CounterGrain(
-           [PersistentState("counter_grain", "demo_counters")] IPersistentState<CounterState> counterStore,
-           ILogger<CounterGrain> logger)
-       {
-           _logger = logger;
-           _counterStore = counterStore;
-           logger.LogInformation("CounterGrain created");
-       }
-       
-       public override async Task OnActivateAsync()
-       {
-           await base.OnActivateAsync();
-           _logger.LogInformation("CounterGrain activated");
-           _logger.LogInformation("Current Count={Count}", _counterStore.State.Count);
-       }
-       
-       public override async Task OnDeactivateAsync()
-       {
-           //NOTE: This is not always being called
-           await _counterStore.WriteStateAsync();
-           await base.OnDeactivateAsync();
-           _logger.LogInformation("CounterGrain deactivated");
-       }
-       
-       #region ICounterGrain implementation
-
-       public Task<int> GetCountAsync()
-       {
-           _logger.LogInformation("GetCountAsync called");
-           return Task.FromResult(_counterStore.State.Count);
-       }
-
-       public async Task IncrementAsync()
-       {
-           _counterStore.State.Count++;
-           _logger.LogInformation("IncrementAsync called, new count: {Count}", _counterStore.State.Count);
-           await _counterStore.WriteStateAsync();
-       }
-
-       public async Task ResetAsync()
-       {
-           _logger.LogInformation("ResetAsync called");
-           await _counterStore.ClearStateAsync();
-       }
-       
-       #endregion
-   }
-
-   [Serializable]
-   public class CounterState
-   {
-       public int Count { get; set; } = 0;
-   }
-
-   ```
-   Grain State的宣告需要一個定義狀態存什麼內容的Data Object型別，在此範例是 `CounterState` 這個可序列化的類別(Class)，到時候注入的Grain State變數，其 `State` 屬性(Property)，就會是該型別；該依賴注入變數需要加掛 [`PersistentStateAttribute`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.persistentstateattribute) 這個屬性(Attribute)來定義依賴注入的是Grain State變數，而非一般依賴注入的參數；在此範例中，該屬性第一個參數為 `counter_grain` 的字串，用來定義到時候實際儲存的『狀態名稱』（可以先假想比喻為資料庫儲存的資料表名稱），而第二個 `demo_counters`，是該Grain State使用的Storage Provider名稱，到時候在SiloBuilder的配置設定程式碼中會指定該名稱實際對應到使用哪種儲存機制提供者。
+        public async Task IncrementAsync()
+        {
+            _counterStore.State.Count++;
+            _logger.LogInformation("IncrementAsync called, new count: {Count}", _counterStore.State.Count);
+            await _counterStore.WriteStateAsync();
+        }
+ 
+        public async Task ResetAsync()
+        {
+            _logger.LogInformation("ResetAsync called");
+            await _counterStore.ClearStateAsync();
+        }
+        
+        #endregion
+    }
+ 
+    [Serializable]
+    public class CounterState
+    {
+        public int Count { get; set; } = 0;
+    }
+ 
+    ```
+    Grain State的宣告需要一個定義狀態存什麼內容的Data Object型別，在此範例是 `CounterState` 這個可序列化的類別(Class)，到時候注入的Grain State變數，其 `State` 屬性(Property)，就會是該型別；該依賴注入變數需要加掛 [`PersistentStateAttribute`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.persistentstateattribute) 這個屬性(Attribute)來定義依賴注入的是Grain State變數，而非一般依賴注入的參數；在此範例中，該屬性第一個參數為 `counter_grain` 的字串，用來定義到時候實際儲存的『狀態名稱』（可以先假想比喻為資料庫儲存的資料表名稱），而第二個 `demo_counters`，是該Grain State使用的Storage Provider名稱，到時候在SiloBuilder的配置設定程式碼中會指定該名稱實際對應到使用哪種儲存機制提供者。
 
 接下來我們寫一個簡單的單元測試，來驗證一下這些RPC方法是否正常運作。
 
@@ -179,57 +181,59 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
 ### CounterGrain的單元測試
 
 1. 在程式碼專案根目錄的 *tests* 目錄之下建立一個 **CounterGrains.Tests** 的xUnit單元測試專案：
-   ```shell
-   dotnet new xunit --no-restore --name CounterGrains.Tests
-   ```
+    
+    ```shell
+    dotnet new xunit --no-restore --name CounterGrains.Tests
+    ```
 2. 將 [**Microsoft.Orleans.TestingHost**](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) Nuget套件安裝到測試專案中。
 3. 將 **RpcDemo.Grains.Counters** 專案加入至此測試專案的專案對專案參考(project-to-project reference)中。
 4. 將 **CounterGrains.Tests** 測試專案的預設 *UnitTest1.cs* 檔刪除，新增 **`CounterGrainTest.cs`** 檔案為以下內容：
-   ```csharp
-   using Orleans.Hosting;
-   using Orleans.TestingHost;
-   using RpcDemo.Interfaces.Counter;
+    
+    ```csharp
+    using Orleans.Hosting;
+    using Orleans.TestingHost;
+    using RpcDemo.Interfaces.Counter;
+ 
+    namespace CounterGrains.Tests;
+ 
+    public class CounterGrainTest
+    {
+        private class TestSiloConfigurator : ISiloConfigurator
+        {
+            public void Configure(ISiloBuilder siloBuilder)
+            {
+                siloBuilder.AddMemoryGrainStorage("demo_counters");
+            }
+        }
+  
+        [Fact]
+        public async Task CounterGrainTest1()
+        {
+            //Arrange
+            var host = new TestClusterBuilder()
+                .AddSiloBuilderConfigurator<TestSiloConfigurator>()
+                .Build();
+            await host.DeployAsync();
+  
+            //Act & Assert
+            var counterGrain = host.GrainFactory.GetGrain<ICounterGrain>(Guid.NewGuid());
+            await counterGrain.IncrementAsync();
+            Assert.Equal(1, await counterGrain.GetCountAsync());
+  
+            await counterGrain.IncrementAsync();
+            await counterGrain.IncrementAsync();
+            Assert.Equal(3, await counterGrain.GetCountAsync());
+  
+            await counterGrain.ResetAsync();
+            Assert.Equal(0, await counterGrain.GetCountAsync());
+  
+            await host.StopAllSilosAsync();
+        }
+    }
+    ```
+    在這個單元測試的程式碼中，測試用Silo的配置程式碼，有使用一個 [`AddMemoryGrainStorage()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.memorygrainstoragesilobuilderextensions.addmemorygrainstorage) 的擴充方法，來指定使用 Orleans 框架內建的測試用In-Memory Storage Provider，將狀態資料儲存在RAM，關閉程式即消失；而呼叫的參數 `demo_counters` 字串，就是在 **RpcDemo.Grains.Counters** 專案中，CounterGrain的Grain State宣告時，所指定的StorageProvider名稱。
 
-   namespace CounterGrains.Tests;
-
-   public class CounterGrainTest
-   {
-       private class TestSiloConfigurator : ISiloConfigurator
-       {
-           public void Configure(ISiloBuilder siloBuilder)
-           {
-               siloBuilder.AddMemoryGrainStorage("demo_counters");
-           }
-       }
- 
-       [Fact]
-       public async Task CounterGrainTest1()
-       {
-           //Arrange
-           var host = new TestClusterBuilder()
-               .AddSiloBuilderConfigurator<TestSiloConfigurator>()
-               .Build();
-           await host.DeployAsync();
- 
-           //Act & Assert
-           var counterGrain = host.GrainFactory.GetGrain<ICounterGrain>(Guid.NewGuid());
-           await counterGrain.IncrementAsync();
-           Assert.Equal(1, await counterGrain.GetCountAsync());
- 
-           await counterGrain.IncrementAsync();
-           await counterGrain.IncrementAsync();
-           Assert.Equal(3, await counterGrain.GetCountAsync());
- 
-           await counterGrain.ResetAsync();
-           Assert.Equal(0, await counterGrain.GetCountAsync());
- 
-           await host.StopAllSilosAsync();
-       }
-   }
-   ```
-   在這個單元測試的程式碼中，測試用Silo的配置程式碼，有使用一個 [`AddMemoryGrainStorage()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.memorygrainstoragesilobuilderextensions.addmemorygrainstorage) 的擴充方法，來指定使用 Orleans 框架內建的測試用In-Memory Storage Provider，將狀態資料儲存在RAM，關閉程式即消失；而呼叫的參數 `demo_counters` 字串，就是在 **RpcDemo.Grains.Counters** 專案中，CounterGrain的Grain State宣告時，所指定的StorageProvider名稱。
-
-整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day10
+整個完成的範例程式GitHub專案在：<https://github.com/windperson/OrleansRpcDemo/tree/day10>
 
 ---
 

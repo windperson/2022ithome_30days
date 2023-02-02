@@ -5,7 +5,7 @@
 
 Grain實作的非同步RPC方法要被呼叫，分為三種情況：
 
-1.  從Client端呼叫：從已連線的[`Orleans Client端`](https://learn.microsoft.com/en-us/dotnet/api/orleans.iclusterclient)呼叫`GetGrain<T>()`方法，取得Grain的RPC參考實體，再呼叫Grain的非同步RPC方法。
+1.  **從Client端呼叫**：從已連線的[`Orleans Client端`](https://learn.microsoft.com/dotnet/api/orleans.iclusterclient)呼叫`GetGrain<T>()`方法，取得Grain的RPC參考實體，再呼叫Grain的非同步RPC方法。
 
     ``` csharp
     await client.Connect();
@@ -13,7 +13,7 @@ Grain實作的非同步RPC方法要被呼叫，分為三種情況：
     await grainProxy.MyMethod();
     ```
 
-2.  在Silo（Server端）的Grain內部呼叫自身或其他Grain RPC方法：Grain類別本身提供一個 [`GrainFactory`](https://learn.microsoft.com/en-us/dotnet/api/orleans.grain.grainfactory) 屬性，透過此屬性取得其他Grain的RPC參考實體，就可呼叫Grain的非同步RPC方法。
+2.  **在Silo（Server端）的Grain內部呼叫自身或其他Grain RPC方法**：Grain類別本身提供一個 [`GrainFactory`](https://learn.microsoft.com/dotnet/api/orleans.grain.grainfactory) 屬性，透過此屬性取得其他Grain的RPC參考實體，就可呼叫Grain的非同步RPC方法。
 
     ``` csharp
     // inside a grain
@@ -21,7 +21,7 @@ Grain實作的非同步RPC方法要被呼叫，分為三種情況：
     await grainProxy.MyMethod();
     ```
 
-3.  在Co-Hosting的Server端呼叫：以上兩種方法其實都是取得符合[`IGrainFactory`](https://learn.microsoft.com/en-us/dotnet/api/orleans.igrainfactory)介面的實體，才有辦法呼叫其定義的`GetGrain<T>()`方法取得RPC參考實體進行呼叫；在跟ASP.NET Core使用『Co-Hosting』的方式跑Silo時（也就是在ASP.NET Core的HostBuilder配置時呼叫[`UseOrleans()`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.generichostextensions.useorleans)擴充方法），Orleans框架有註冊`IGrainFactory`服務進ASP.NET Core的依賴注入（Dependency Injection, DI）機制，因此，我們可藉由ASP.NET Core的DI機制取得`IGrainFactory`服務實體，接下來就如同上述方式來呼叫Grain的非同步RPC方法：
+3.  **在Co-Hosting的Server端呼叫**：以上兩種方法其實都是取得符合 [`IGrainFactory`](https://learn.microsoft.com/dotnet/api/orleans.igrainfactory) 介面的實體，才有辦法呼叫其定義的 `GetGrain<T>()` 方法取得RPC參考實體進行呼叫；在跟ASP.NET Core使用『Co-Hosting』的方式跑Silo時（也就是在ASP.NET Core的HostBuilder配置時呼叫 [`UseOrleans()`](https://learn.microsoft.com/dotnet/api/microsoft.extensions.hosting.generichostextensions.useorleans) 擴充方法），Orleans框架有註冊`IGrainFactory`服務進ASP.NET Core的依賴注入（Dependency Injection, DI）機制，因此，我們可藉由ASP.NET Core的DI機制取得`IGrainFactory`服務實體，接下來就如同上述方式來呼叫Grain的非同步RPC方法：
 
     ``` csharp
     // After hostBuilder.Build() and .Run() or StartAsync() in Program.cs
@@ -34,9 +34,11 @@ Grain實作的非同步RPC方法要被呼叫，分為三種情況：
     await grainProxy.MyMethod();
     ```
 
+
+
 ## Grain單元測試
 
-要對Grain的RPC方法進行單元測試，Orleans框架有提供一個 [Microsoft.Orleans.TestingHost](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) Nuget套件，裡面的[`TestCluster`](https://learn.microsoft.com/en-us/dotnet/api/orleans.testinghost.testcluster)類別，用來模擬單一個Silo的環境，可在單元測試專案中，透過`TestCluster`類別的[`GrainFactory`](https://learn.microsoft.com/en-us/dotnet/api/orleans.testinghost.testcluster.grainfactory)屬性取得Grain的RPC參考實體，進行呼叫Grain的非同步RPC方法。
+要對Grain的RPC方法進行單元測試，Orleans框架有提供一個 [Microsoft.Orleans.TestingHost](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) Nuget套件，裡面的 [`TestCluster`](https://learn.microsoft.com/dotnet/api/orleans.testinghost.testcluster) 類別，用來模擬單一個Silo的測試環境，可在單元測試專案中，透過`TestCluster`類別的 [`GrainFactory`](https://learn.microsoft.com/dotnet/api/orleans.testinghost.testcluster.grainfactory) 屬性取得Grain的RPC參考實體，進行呼叫Grain的非同步RPC方法。
 
 以下為對我們前天的Grain實作專案 **RpcDemo.Grains.Greeting** 中的 `HelloGrain` 進行單元測試範例：
 
@@ -108,9 +110,7 @@ Grain實作的非同步RPC方法要被呼叫，分為三種情況：
     ``` csharp
     using Orleans.Hosting;
     using Orleans.TestingHost;
-
     namespace GreetingGrain.Tests;
-
     public class TestSiloConfigurator : ISiloConfigurator
     {
         public void Configure(ISiloBuilder siloBuilder)
@@ -142,7 +142,7 @@ Grain實作的非同步RPC方法要被呼叫，分為三種情況：
   }
   ```
 
-整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day08
+整個完成的範例程式GitHub專案在：<https://github.com/windperson/OrleansRpcDemo/tree/day08>
 
 ------------------------------------------------------------------------
 

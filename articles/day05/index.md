@@ -14,7 +14,7 @@ Orleans的各種專案所需的Nuget套件如下：
 - **Grain實作專案**：
   - [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core)
   - [**Microsoft.Orleans.CodeGenerator.MSBuild**](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild)
-  - Grain的實作程式碼使用Dependency Injection的套件，例如寫log所需的[`ILogger`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger?view=dotnet-plat-ext-6.0)介面宣告 [Microsoft.Extensions.Logging.Abstractions](https://wwww.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions) 套件，或是其他第三方支援.NET Core/.NET 5+內建DI用的宣告/標頭套件。
+  - Grain的實作程式碼使用Dependency Injection的套件，例如寫log所需的[`ILogger`](https://learn.microsoft.com/dotnet/api/microsoft.extensions.logging.ilogger?view=dotnet-plat-ext-6.0)介面宣告 [Microsoft.Extensions.Logging.Abstractions](https://wwww.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions) 套件，或是其他第三方支援.NET Core/.NET 5+內建DI用的宣告/標頭套件。
 - **Silo專案**：
   - [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server)：讓Microsoft Orleans的Silo服務跑起來的主要套件。
   - Orleans在運營(Ops)面向的各種因應Grain State storage, Reminder, Streaming等框架服務所需的Provider套件，例如 [Microsoft.Orleans.Persistence.AdoNet](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AdoNet) 即為讓Grain狀態資料實際存入 ADO.NET 支援之資料庫的套件。
@@ -32,6 +32,8 @@ Orleans的各種專案所需的Nuget套件如下：
 ```
 
 這個就是讓Orleans專案可以在 *建置時期(Build Time)* 進行RPC Code Gen的套件，接下來會解釋這個套件的作用。
+
+
 
 ## RPC Code Gen解說
 
@@ -87,6 +89,8 @@ var hostBuilder = new HostBuilder().UseOrleans(siloBuilder =>{
 });
 ```
 
+
+
 #### RPC Code Gen的特殊調校
 
 - 假如在RPC介面的方法宣告中的參數，或是Grain實作專案在實作傳回值時有用到的一些第三方函式庫NuGet套件內的類別，這些類別也需要被RPC Code Gen才有辦法順利讓Orleans的RPC方法使用，步驟如下：
@@ -114,7 +118,7 @@ var hostBuilder = new HostBuilder().UseOrleans(siloBuilder =>{
       ```
 
       假如是在RPC介面宣告中有用到第三方函式庫Nuget的話，則Client專案的Builder建構程式碼也需要加入該Application Part的宣告。
-- 要強制RPC Code Gen產生某型別的RPC呼叫用程式碼，在該類別宣告前加入`[assembly: Orleans.CodeGeneration.KnownType(typeof(MyClass))]`，其中 `MyClass` 是要強制RPC Code Gen產生的類別(Class)或結構(Struct)的舉例名稱。此 [KnowTypeAttribute](https://learn.microsoft.com/en-us/dotnet/api/orleans.codegeneration.knowntypeattribute) 是定義在 [Microsoft.Orleans.Core.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions) 這個Orleans官方Nuget套件中的。
+- 要強制RPC Code Gen產生某型別的RPC呼叫用程式碼，在該類別宣告前加入`[assembly: Orleans.CodeGeneration.KnownType(typeof(MyClass))]`，其中 `MyClass` 是要強制RPC Code Gen產生的類別(Class)或結構(Struct)的舉例名稱。此 [KnowTypeAttribute](https://learn.microsoft.com/dotnet/api/orleans.codegeneration.knowntypeattribute) 是定義在 [Microsoft.Orleans.Core.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions) 這個Orleans官方Nuget套件中的。
 
 ------------------------------------------------------------------------
 

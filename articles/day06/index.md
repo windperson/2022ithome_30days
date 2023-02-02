@@ -8,7 +8,7 @@ HelloWorld專案程式碼完成後的執行架構將如下圖所示：
 <div>
 
 ``` mermaid
-flowchart
+flowchart TB
     client -.- tcpip01("TCP/IP")
     tcpip01 -.-> server
     server -.- tcpip02("TCP/IP")
@@ -41,7 +41,9 @@ flowchart
 4.  Silo後端接收到RPC呼叫後，會根據呼叫參數建立HelloGrain實例，並呼叫Grain實例的RPC方法實作。
 5.  Grain的RPC方法實作完成後，會將結果傳回Silo後端，然後Silo後端再藉由TCP/IP網路將結果傳回給還在非同步方法等待完成的Client端，此過程由於繁雜且實際上Orleans框架底層都幫你做完了，因此在圖上的流程就直接抽象化理解為Grain非同步方法完成後透過TCP/IP網路回傳結果給Client端RPC Proxy。
 
-雖然圖中是畫成Client和Server端是靠TCP/IP網路連接，但但後面示範的程式實際上Client和Server都是跑在同台電腦用Localhost的方式連接：Client端的ClientBuilder程式碼會呼叫[UseLocalhostClustering()](https://learn.microsoft.com/en-us/dotnet/api/orleans.clientbuilderextensions.uselocalhostclustering)擴充方法以便稍後呼叫`Connect()`時連接本機Silo，而Server端的SiloHostBuilder程式碼也有一個[UseLocalhostClustering()](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.corehostingextensions.uselocalhostclustering)擴充方法便配置使用Local的測試用Silo配置。
+雖然圖中是畫成Client和Server端是靠TCP/IP網路連接，但但後面示範的程式實際上Client和Server都是跑在同台電腦用Localhost的方式連接：Client端的ClientBuilder程式碼會呼叫 [UseLocalhostClustering()](https://learn.microsoft.com/dotnet/api/orleans.clientbuilderextensions.uselocalhostclustering) 擴充方法以便稍後呼叫 `Connect()` 時連接本機Silo，而Server端的SiloHostBuilder程式碼也有一個 [UseLocalhostClustering()](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.corehostingextensions.uselocalhostclustering) 擴充方法便配置使用Local的測試用Silo配置。
+
+
 
 ## 專案建置步驟
 
@@ -96,7 +98,7 @@ flowchart
     }
     ```
 
-5.  將**RpcDemo.Hosting.Console**專案中原本的 `Program.cs` 修改為：
+5.  將**RpcDemo.Hosting.Console** 專案中原本的 `Program.cs` 修改為：
 
     ``` csharp
     using System.Net;
@@ -260,37 +262,39 @@ flowchart
     }
     ```
 
+
+
 ## 執行測試
 
 1.  切換到Visual Studio Code的**Debug**頁籤，選取**Launch Server**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Silo。
 
-    ![](launch_server.png)
+    ![](./launch_server.png)
 
     可能會出現是否要允許防火牆通過，請選擇**允許存取**。
 
-    ![](allow_firewall.png)
+    ![](./allow_firewall.png)
 
     等到Visual Studio Code的Terminal視窗出現如下圖的螢幕提示時，表示Server端程式已經啟動完成。
 
-    ![](server_started.png)
+    ![](./server_started.png)
 
 2.  切換到Visual Studio Code的**Debug**頁籤，選取**Launch Client**，按左邊的綠色啟動按鈕或下鍵盤**F5**鍵，啟動Orleans Client。
 
-    ![](launch_client.png)
+    ![](./launch_client.png)
 
     在跳出來的命令列視窗中，按下任意鍵，讓Client端程式開始連線到Server端程式。
 
-    ![](client_start01.png)
+    ![](./client_start01.png)
 
     然後就會顯示呼叫Grain的SayHello() RPC方法的結果：
 
-    ![](client_start02.png)
+    ![](./client_start02.png)
 
 3.  要結束此執行範例，在Client的命令列視窗按任意鍵停止Client端程式，然後在Visual Studio的Terminal視窗按下**Ctrl+C**停止Server端程式。
 
-    ![](shutdown_server.png)
+    ![](./shutdown_server.png)
 
-整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day06
+整個完成的範例程式GitHub專案在：<https://github.com/windperson/OrleansRpcDemo/tree/day06>
 
 ------------------------------------------------------------------------
 

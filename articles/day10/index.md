@@ -256,7 +256,7 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
 
     在這個單元測試的程式碼中，測試用Silo的配置程式碼，有使用一個 [`AddMemoryGrainStorage()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.memorygrainstoragesilobuilderextensions.addmemorygrainstorage) 的擴充方法，來指定使用 Orleans 框架內建的測試用In-Memory Storage Provider，將狀態資料儲存在RAM，關閉程式即消失；而呼叫的參數 `demo_counters` 字串，就是在 **RpcDemo.Grains.Counters** 專案中，CounterGrain的Grain State宣告時，所指定的StorageProvider名稱。
 
-整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day10
+整個完成的範例程式GitHub專案在：<https://github.com/windperson/OrleansRpcDemo/tree/day10>
 
 ------------------------------------------------------------------------
 

@@ -221,8 +221,10 @@ Orleans的Grain實作專案可以使用.NET Core/.NET5的依賴注入(Dependency
 
     在客戶端的程式碼也是類似Silo相對應的加了對 `ICowsayGrain` RPC介面的註冊，後續就是取得RPC參考實體和呼叫 `Say()` 方法，並且輸出結果。
 
-實際執行起來的 Demo 畫面如下，可以看到CowsayGrain藉由DI注入的Logger可以把訊息w寫到Silo的Debug Console的Log訊息上：  
+實際執行起來的 Demo 畫面如下，可以看到CowsayGrain藉由DI注入的Logger可以把訊息寫到Silo的Debug Console的Log訊息上：  
 ![](./cowsaygrain_demo.png)
+
+
 
 ## 使用依賴注入Grain專案的單元測試
 
@@ -307,9 +309,9 @@ Orleans的Grain實作專案可以使用.NET Core/.NET5的依賴注入(Dependency
 
     [ILogger.Mq](https://github.com/adrianiftode/Moq.ILogger)可換掉實際被依賴注入的Logger實體以便在測試專案內檢驗Grain實作程式碼時是否有呼叫到寫Log的功能，如 `LogInformation()`；而使用[Moq](https://github.com/moq/moq4)來換掉原本Cowsay函式庫的依賴注入介面： `ICattleFarmer` 的 `RearCowAsync()` 方法和 `ICow`物件實體呼叫 `Say()` 方法提供的的結果，以便在測試專案內換掉原本Cowsay函式庫會印出ASCII圖案的行為，直接回傳原本輸入的訊息，方便做Assert驗證。
 
-    而原本Cowsay函式庫提供用來簡化依賴注入註冊樣版程式碼的`service.AddCowSay()`擴充方法，其[內部的實作](https://github.com/rawsonm88/Cowsay/blob/f1f3dd153e3d1c9b951bfeafbcf575ea5d4fdef7/Cowsay.Extensions.DependencyInjection/ServiceCollectionExtensions.cs#L13)就是將`ICattleFarmer`以Singleton生命週期註冊到DI容器中；因此在測試Silo的配置設定程式碼，只需也做同樣的方式註冊預備好的mock物件，就可以在跑測試時換掉原本的依賴注入實體來使用，同樣的技巧也可以換掉 Orleans 一些提供公開介面(Interface)的框架層級物件，以方便測試。
+而原本Cowsay函式庫提供用來簡化依賴注入註冊樣版程式碼的`service.AddCowSay()`擴充方法，其[內部的實作機制](https://github.com/rawsonm88/Cowsay/blob/f1f3dd153e3d1c9b951bfeafbcf575ea5d4fdef7/Cowsay.Extensions.DependencyInjection/ServiceCollectionExtensions.cs#L13)就是將 `ICattleFarmer` 以Singleton生命週期註冊到DI容器中；因此在測試Silo的配置設定程式碼中，只需也做同樣的方式註冊預備好的mock物件，就可以在跑單元測試時換掉原本的依賴注入實體來使用，同樣的技巧也可以換掉 Orleans 一些提供公開介面(Interface)的框架層級物件，以方便測試。
 
-整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day09
+整個完成的範例程式GitHub專案在：<https://github.com/windperson/OrleansRpcDemo/tree/day09>
 
 ------------------------------------------------------------------------
 
