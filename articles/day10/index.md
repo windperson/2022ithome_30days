@@ -1,3 +1,4 @@
+
 # Orleans的Grain生命週期與State狀態資料存取
 
 Grain的State狀態資料存取，是Orleans的核心功能之一，提供讓開發者可以將Grain的狀態資料存取到外部資料庫上的功能。不過要理解其狀態資料存取的機制，需要先了解Orleans的Grain的生命週期。
@@ -6,31 +7,37 @@ Grain的State狀態資料存取，是Orleans的核心功能之一，提供讓開
 
 Grain在被Silo啟動，接受RPC呼叫之後，會停留在記憶體裡一段時間，以便下一次RPC呼叫時可以非常快的速度立即反應，但當閒置一段時間沒有人呼叫該Grain之後，Grain佔用的記憶體就會被回收以節省系統資源，等下一次又有人呼叫該Grain RPC方法時，再從頭開始，這整段流程稱為[Grain的生命週期](https://learn.microsoft.com/en-us/dotnet/orleans/grains/grain-lifecycle)。
 
-```mermaid
+<div>
+
+``` mermaid
 flowchart LR
-  RPC_invoke(routed RPC request) -.-> Silo
-  subgraph Silo[Silo]
-    direction TB
-    Active{"Silo Activate\nGrain instance"} -.-o Activating
-    mq[["RPC request queue"]] -.->|Processing\nqueue| live
-    subgraph Grain 
+    RPC_invoke(routed RPC request) -.-> Silo
+    subgraph Silo[Silo]
         direction TB
-        Activating ==>|"trigger\n#quot;Grain.OnActivateAsync()#quot;"|live(("Active in memory\n( Lived )"))
-        Deactivating ==> Persisted["Persisted\n( Hibernated )"]
-        Persisted ==> Activating{{Activating}}
-        live -->|idle|idle_timout(Idle Timeout) -->|"trigger\n#quot;Grain.OnDeactivateAsync()#quot;"| Deactivating{{Deactivating}}
-        live -->|"Process\nRPC Request(s)"| live
+        Active{"Silo Activate\nGrain instance"} -.-o Activating
+        mq[["RPC request queue"]] -.->|Processing\nqueue| live
+        subgraph Grain 
+            direction TB
+            Activating ==>|"trigger\n#quot;Grain.OnActivateAsync()#quot;"|live(("Active in memory\n( Lived )"))
+            Deactivating ==> Persisted["Persisted\n( Hibernated )"]
+            Persisted ==> Activating{{Activating}}
+            live -->|idle|idle_timout(Idle Timeout) -->|"trigger\n#quot;Grain.OnDeactivateAsync()#quot;"| Deactivating{{Deactivating}}
+            live -->|"Process\nRPC Request(s)"| live
+        end
     end
-  end
 ```
+
+</div>
+
+
 
 ## Grain的狀態資料存取
 
 Grain的狀態資料存取API有三個：
 
-* 讀取：[`ReadStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.readstateasync)
-* 寫入：[`WriteStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.writestateasync)
-* 重設：[`ClearStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.clearstateasync)
+- 讀取：[`ReadStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.readstateasync)
+- 寫入：[`WriteStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.writestateasync)
+- 重設：[`ClearStateAsync()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.core.istorage.clearstateasync)
 
 這三個API都是非同步的，建議在呼叫時使用`await`寫法等待其執行完成。
 
@@ -42,36 +49,66 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
 
 先前的文章中有稍微提及Grain State的宣告是寫在在Grain的建構子(Constructor)程式碼宣告中，類似 .NET Core/.NET5+的依賴注入物件的寫法；因此， **一個Grain可以有一個以上的狀態資料可供存取使用**，例如設計一個購物網站顧客的UserGrain時，該Grain有兩個狀態資料：顧客基本資料與當前購物車狀態資料；然後在SiloBuilder的配置程式碼中再使用Orleans運營面向(Ops)的API設定使用不同的Storage Provider，將這兩個狀態資料Provider分別設定是存放在不同的資料庫中，例如顧客基本資料存放在SQL Server資料庫中，而購物車資料則存放在No-SQL資料庫像是Azure Table Storage雲端服務中。
 
-![](./grain_state_1.png)
+![](./grain_state_1.png)  
 *圖片來源：[舊Orleans說明文件](https://github.com/dotnet/orleans-docs/blob/main/src/images/grain_state_1.png)*
 
 以下以一個記數器Grain為例，來說明Grain的狀態資料存取的程式碼實作：
+
+
 
 ## 記數器Grain實作
 
 ### CounterGrain程式碼撰寫
 
-1. 在[昨天進度的原始碼git專案](https://github.com/windperson/OrleansRpcDemo/tree/day09)，分別建立新的RPC介面專案和Grain實作專案：
-    
-    | 路徑 | 專案名稱 | 專案類型 |
-    |---------- | :-------- | -------- |
+1.  在[昨天進度的原始碼git專案](https://github.com/windperson/OrleansRpcDemo/tree/day09)，分別建立新的RPC介面專案和Grain實作專案：
+
+    | 路徑       | 專案名稱                       |           專案類型           |
+    |:-----------|:-------------------------------|:----------------------------:|
     | src/Shared | **RpcDemo.Interfaces.Counter** | .NET 6 類別庫(class library) |
-    | src/Grains | **RpcDemo.Grains.Counters** | .NET 6 類別庫(class library) |
+    | src/Grains | **RpcDemo.Grains.Counters**    | .NET 6 類別庫(class library) |
 
     將這兩個專案各自加入根目錄的Orleans.sln方案的 Shared以及Grains方案資料夾(Solution Folder)中。
 
-2. 將 **RpcDemo.Interfaces.Counter** 加入至 **RpcDemo.Grains.Counters** 專案的專案對專案參考(project-to-project reference)中。
-3. 各專案要安裝的Nuget套件：
-    
-    | 專案名稱 | 需安裝Nuget套件 |
-    | :---------- | :-------- |
-    | **RpcDemo.Interfaces.Counter** | [Microsoft.Orleans.Core.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions) 、 [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) |
-    | **RpcDemo.Grains.Counters** | [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions) 、 [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core) 、 [Microsoft.Orleans.Runtime.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Runtime.Abstractions) 、 [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) |
+2.  將 **RpcDemo.Interfaces.Counter** 加入至 **RpcDemo.Grains.Counters** 專案的專案對專案參考(project-to-project reference)中。
+
+3.  各專案要安裝的Nuget套件：
+
+    <table>
+    <colgroup>
+    <col style="width: 21%" />
+    <col style="width: 78%" />
+    </colgroup>
+    <thead>
+    <tr class="header">
+    <th style="text-align: left;">專案名稱</th>
+    <th style="text-align: left;">需安裝Nuget套件</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: left;"><strong>RpcDemo.Interfaces.Counter</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions">Microsoft.Orleans.Core.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    </ul></td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: left;"><strong>RpcDemo.Grains.Counters</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions">Microsoft.Extensions.Logging.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core">Microsoft.Orleans.Core</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Runtime.Abstractions">Microsoft.Orleans.Runtime.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    </ul></td>
+    </tr>
+    </tbody>
+    </table>
 
     其中 **Microsoft.Orleans.Runtime.Abstractions** 套件是用於提供Grain State宣告需要用的 [`PersistentStateAttribute`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.persistentstateattribute) 屬性(Attribute)和 [`IPersistentState<TState>`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.ipersistentstate-1) 用於依賴注入的介面。
 
-4. 定義記數器的RPC介面，在 **RpcDemo.Interfaces.Counter** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **ICounterGrain.cs**：
-    ```csharp
+4.  定義記數器的RPC介面，在 **RpcDemo.Interfaces.Counter** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **ICounterGrain.cs**：
+
+    ``` csharp
     using Orleans;
 
     namespace RpcDemo.Interfaces.Counter;
@@ -83,8 +120,10 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
       Task ResetAsync();
     }
     ```
-5. 記數器Grain的實作，在 **RpcDemo.Grains.Counters** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **CounterGrain.cs**：
-    ```csharp
+
+5.  記數器Grain的實作，在 **RpcDemo.Grains.Counters** 專案中，移除預設專案範本產的 *Class1.cs*，新增一個C#程式碼檔案 **CounterGrain.cs**：
+
+    ``` csharp
     using Microsoft.Extensions.Logging;
     using Orleans;
     using Orleans.Runtime;
@@ -105,14 +144,14 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
             _counterStore = counterStore;
             logger.LogInformation("CounterGrain created");
         }
-        
+
         public override async Task OnActivateAsync()
         {
             await base.OnActivateAsync();
             _logger.LogInformation("CounterGrain activated");
             _logger.LogInformation("Current Count={Count}", _counterStore.State.Count);
         }
-        
+
         public override async Task OnDeactivateAsync()
         {
             //NOTE: This is not always being called
@@ -120,7 +159,7 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
             await base.OnDeactivateAsync();
             _logger.LogInformation("CounterGrain deactivated");
         }
-        
+
         #region ICounterGrain implementation
 
         public Task<int> GetCountAsync()
@@ -141,7 +180,7 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
             _logger.LogInformation("ResetAsync called");
             await _counterStore.ClearStateAsync();
         }
-        
+
         #endregion
     }
 
@@ -150,22 +189,29 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
     {
         public int Count { get; set; } = 0;
     }
-
     ```
+
     Grain State的宣告需要一個定義狀態存什麼內容的Data Object型別，在此範例是 `CounterState` 這個可序列化的類別(Class)，到時候注入的Grain State變數，其 `State` 屬性(Property)，就會是該型別；該依賴注入變數需要加掛 [`PersistentStateAttribute`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.persistentstateattribute) 這個屬性(Attribute)來定義依賴注入的是Grain State變數，而非一般依賴注入的參數；在此範例中，該屬性第一個參數為 `counter_grain` 的字串，用來定義到時候實際儲存的『狀態名稱』（可以先假想比喻為資料庫儲存的資料表名稱），而第二個 `demo_counters`，是該Grain State使用的Storage Provider名稱，到時候在SiloBuilder的配置設定程式碼中會指定該名稱實際對應到使用哪種儲存機制提供者。
 
 接下來我們寫一個簡單的單元測試，來驗證一下這些RPC方法是否正常運作。
 
+
+
 ### CounterGrain的單元測試
 
-1. 在程式碼專案根目錄的 *tests* 目錄之下建立一個 **CounterGrains.Tests** 的xUnit單元測試專案：
-    ```shell
+1.  在程式碼專案根目錄的 *tests* 目錄之下建立一個 **CounterGrains.Tests** 的xUnit單元測試專案：
+
+    ``` shell
     dotnet new xunit --no-restore --name CounterGrains.Tests
     ```
-2. 將 [**Microsoft.Orleans.TestingHost**](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) Nuget套件安裝到測試專案中。
-3. 將 **RpcDemo.Grains.Counters** 專案加入至此測試專案的專案對專案參考(project-to-project reference)中。
-4. 將 **CounterGrains.Tests** 測試專案的預設 *UnitTest1.cs* 檔刪除，新增 **`CounterGrainTest.cs`** 檔案為以下內容：
-    ```csharp
+
+2.  將 [**Microsoft.Orleans.TestingHost**](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) Nuget套件安裝到測試專案中。
+
+3.  將 **RpcDemo.Grains.Counters** 專案加入至此測試專案的專案對專案參考(project-to-project reference)中。
+
+4.  將 **CounterGrains.Tests** 測試專案的預設 *UnitTest1.cs* 檔刪除，新增 **`CounterGrainTest.cs`** 檔案為以下內容：
+
+    ``` csharp
     using Orleans.Hosting;
     using Orleans.TestingHost;
     using RpcDemo.Interfaces.Counter;
@@ -181,7 +227,7 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
                 siloBuilder.AddMemoryGrainStorage("demo_counters");
             }
         }
-        
+
         [Fact]
         public async Task CounterGrainTest1()
         {
@@ -190,27 +236,28 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
                 .AddSiloBuilderConfigurator<TestSiloConfigurator>()
                 .Build();
             await host.DeployAsync();
-            
+
             //Act & Assert
             var counterGrain = host.GrainFactory.GetGrain<ICounterGrain>(Guid.NewGuid());
             await counterGrain.IncrementAsync();
             Assert.Equal(1, await counterGrain.GetCountAsync());
-            
+
             await counterGrain.IncrementAsync();
             await counterGrain.IncrementAsync();
             Assert.Equal(3, await counterGrain.GetCountAsync());
-            
+
             await counterGrain.ResetAsync();
             Assert.Equal(0, await counterGrain.GetCountAsync());
-            
+
             await host.StopAllSilosAsync();
         }
     }
     ```
-   在這個單元測試的程式碼中，測試用Silo的配置程式碼，有使用一個 [`AddMemoryGrainStorage()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.memorygrainstoragesilobuilderextensions.addmemorygrainstorage) 的擴充方法，來指定使用 Orleans 框架內建的測試用In-Memory Storage Provider，將狀態資料儲存在RAM，關閉程式即消失；而呼叫的參數 `demo_counters` 字串，就是在 **RpcDemo.Grains.Counters** 專案中，CounterGrain的Grain State宣告時，所指定的StorageProvider名稱。
+
+    在這個單元測試的程式碼中，測試用Silo的配置程式碼，有使用一個 [`AddMemoryGrainStorage()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.memorygrainstoragesilobuilderextensions.addmemorygrainstorage) 的擴充方法，來指定使用 Orleans 框架內建的測試用In-Memory Storage Provider，將狀態資料儲存在RAM，關閉程式即消失；而呼叫的參數 `demo_counters` 字串，就是在 **RpcDemo.Grains.Counters** 專案中，CounterGrain的Grain State宣告時，所指定的StorageProvider名稱。
 
 整個完成的範例程式GitHub專案在：https://github.com/windperson/OrleansRpcDemo/tree/day10
 
----
+------------------------------------------------------------------------
 
 明天繼續介紹另外兩種官方提供的Storage Provider：Azure Blob/Table Storage使用方法，以及其他Grain State在程式碼撰寫時的注意事項。
