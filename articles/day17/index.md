@@ -1,3 +1,4 @@
+
 # Orleans Grain的Timer和Reminder機制
 
 Orleans 提供Grain兩種方式來實現定時任務，一種是 Timer，另一種是 Reminder。
@@ -6,8 +7,9 @@ Timer不需要在Silo端額外配置紀錄設定用的Provider，而Reminder需�
 
 ## Grain的Timer使用法
 
-使用Timer的方法是在Grain實作專案的程式碼內呼叫 `Grain`基礎類別提供的 [RegisterTimer](https://learn.microsoft.com/en-us/dotnet/api/orleans.grain.registertimer) 函式，如以下使用Timer每秒鐘印一筆Log的Grain程式範例：
-```csharp
+使用Timer的方法是在Grain實作專案的程式碼內呼叫 `Grain`基礎類別提供的 [RegisterTimer](https://learn.microsoft.com/dotnet/api/orleans.grain.registertimer) 函式，如以下使用Timer每秒鐘印一筆Log的Grain程式範例：
+
+``` csharp
 public class TimerProducerGrain : Grain, IProducerGrain
 {
     private readonly ILogger<TimerProducerGrain> _logger;
@@ -52,14 +54,15 @@ public class TimerProducerGrain : Grain, IProducerGrain
         return Task.CompletedTask;
     }
 }
-
 ```
-Grain Timer API提供的創建語法上和一般 *.NET BCL(Base Class Library)* 提供的 [System.Threading.Timer](https://learn.microsoft.com/en-us/dotnet/api/system.threading.timer) 很像，第一個參數是Timer觸發時會執行的 `Func<Object, Task>` 型態的開發者自行撰寫delegate，第二個參數是呼叫該delegate時，會輸入的參數，第三個參數是Timer的第一次觸發間隔時間，第四個參數是Timer的重複觸發間隔時間，如果第四個參數是 `TimeSpan.Zero`，則Timer只會觸發一次。
 
-Grain的Timer要停止，必須呼叫其執行 `RegisterTimer()`方法回傳的 `IDisposable`物件的 `Dispose()`方法，並且也沒有提供 `Change()` 方法來修改或停止Timer。
+Grain Timer API提供的創建語法上和一般 *.NET BCL(Base Class Library)* 提供的 [System.Threading.Timer](https://learn.microsoft.com/dotnet/api/system.threading.timer) 很像，第一個參數是Timer觸發時會執行的 `Func<Object, Task>` 型態的開發者自行撰寫delegate，第二個參數是呼叫該delegate時，會輸入的參數，第三個參數是Timer的第一次觸發間隔時間，第四個參數是Timer的重複觸發間隔時間，如果第四個參數是 `TimeSpan.Zero`，則Timer只會觸發一次。
+
+Grain的Timer要停止，必須呼叫其執行 `RegisterTimer()` 方法回傳的 `IDisposable` 物件的 `Dispose()` 方法，並且也沒有提供 `Change()` 方法來修改或停止Timer。
 
 Grain Timer適合使用於觸發間隔時間小於一分鐘的事務，如果是需要間隔時間大於一分鐘，並且跨Grain的起始→閒置→休眠的生命週期之事務，建議使用Reminder。
 
+
 
 ## Grain的Reminder使用法
 
@@ -67,8 +70,9 @@ Reminder是需要有在Silo層設定Provider才能使用的功能，但它可以
 
 ### Reminder寫法
 
-要使用Reminder的Grain類別定義，必須實作 [IRemindable](https://learn.microsoft.com/en-us/dotnet/api/orleans.iremindable) 介面提供的 [`ReceiveReminder()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.iremindable.receivereminder) 事件處理函式，這是讓Reminder觸發時執行的程式，而一開始需要在某些進入點呼叫 [`RegisterOrUpdateReminder()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.grain.registerorupdatereminder) 方法來註冊Reminder，如此以便讓Reminder正常排程觸發：
-```csharp
+要使用Reminder的Grain類別定義，必須實作 [IRemindable](https://learn.microsoft.com/dotnet/api/orleans.iremindable) 介面提供的 [`ReceiveReminder()`](https://learn.microsoft.com/dotnet/api/orleans.iremindable.receivereminder) 事件處理函式，這是讓Reminder觸發時執行的程式，而一開始需要在某些進入點呼叫 [`RegisterOrUpdateReminder()`](https://learn.microsoft.com/dotnet/api/orleans.grain.registerorupdatereminder) 方法來註冊Reminder，如此以便讓Reminder正常排程觸發：
+
+``` csharp
 public class MyReminderGrain : Orleans.Grain, IMyReminder, IRemindable
 {
     private readonly ILogger<MyReminderGrain> _logger;
@@ -123,12 +127,14 @@ public class ReminderInfo
     public IGrainReminder Reminder { get; set; }
 }
 ```
-Reminder在不需要時，可以呼叫 [`UnregisterReminder()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.grain.unregisterreminder) 方法來取消註冊，但因為此方法需要一個 [`IGrainReminder`](https://learn.microsoft.com/en-us/dotnet/api/orleans.runtime.igrainreminder)輸入參數，因此在Grain本身需準備儲存已註冊Reminder的成員變數，此範例是用一個叫 `_registeredReminders` 的Dictionary資料結構變數來存。
+
+Reminder在不需要時，可以呼叫 [`UnregisterReminder()`](https://learn.microsoft.com/dotnet/api/orleans.grain.unregisterreminder) 方法來取消註冊，但因為此方法需要一個 [`IGrainReminder`](https://learn.microsoft.com/dotnet/api/orleans.runtime.igrainreminder) 輸入參數，因此在Grain本身需準備儲存已註冊Reminder的成員變數，此範例是用一個叫 `_registeredReminders` 的Dictionary資料結構變數來存。
 
 ### Reminder的Provider安裝與Silo設定
 
-內建的In-Memory Reminder Provider設定方法如下，需呼叫 [`UseInMemoryReminderService()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useinmemoryreminderservice) 擴充方法：
-```csharp
+內建的In-Memory Reminder Provider設定方法如下，需呼叫 [`UseInMemoryReminderService()`](https://learn.microsoft.com/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useinmemoryreminderservice) 擴充方法：
+
+``` csharp
 .UseOrleans(builder =>
 {
     builder.UseInMemoryReminderService();
@@ -138,8 +144,9 @@ Reminder在不需要時，可以呼叫 [`UnregisterReminder()`](https://learn.mi
 })
 ```
 
-官方提供的Azure Table Storage Reminder Provider設定方法如下，需安裝[Microsoft.Orleans.Reminders.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AzureStorage)套件以便呼叫 [`UseAzureTableReminderService()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useazuretablereminderservice) 擴充方法：
-```csharp
+官方提供的Azure Table Storage Reminder Provider設定方法如下，需安裝 [Microsoft.Orleans.Reminders.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AzureStorage) 套件以便呼叫 [`UseAzureTableReminderService()`](https://learn.microsoft.com/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useazuretablereminderservice) 擴充方法：
+
+``` csharp
 .UseOrleans(builder =>
 {
     builder.UseAzureTableReminderService(
@@ -148,10 +155,11 @@ Reminder在不需要時，可以呼叫 [`UnregisterReminder()`](https://learn.mi
     other configuration
     */
 })
-```    
+```
 
-官方提供的ADO.NET Reminder Provider設定方法如下，類似使用 ADO.NET 的Grain Storage Provider一樣，要在目標資料庫建立資料表，而[建立資料表的SQL Script](https://learn.microsoft.com/en-us/dotnet/orleans/host/configuration-guide/adonet-configuration#persistence)要依使用的資料庫來選擇要執行的種類下載執行；在Silo配置方面，需安裝[Microsoft.Orleans.Reminders.AdoNet](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AdoNet)套件以便呼叫 [`UseAdoNetReminderService()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useadonetreminderservice) 擴充方法：
-```csharp
+官方提供的ADO.NET Reminder Provider設定方法如下，類似使用 ADO.NET 的Grain Storage Provider一樣，要在目標資料庫建立資料表，而[建立資料表的SQL Script](https://learn.microsoft.com/dotnet/orleans/host/configuration-guide/adonet-configuration#persistence)要依使用的資料庫來選擇要執行的種類下載執行；在Silo配置方面，需安裝 [Microsoft.Orleans.Reminders.AdoNet](https://www.nuget.org/packages/Microsoft.Orleans.Reminders.AdoNet) 套件以便呼叫 [`UseAdoNetReminderService()`](https://learn.microsoft.com/dotnet/api/orleans.hosting.silohostbuilderreminderextensions.useadonetreminderservice) 擴充方法：
+
+``` csharp
  .UseOrleans(builder =>
     {
         builder.UseAdoNetReminderService(
@@ -165,6 +173,6 @@ Reminder在不需要時，可以呼叫 [`UnregisterReminder()`](https://learn.mi
     })
 ```
 
----
+------------------------------------------------------------------------
 
 明天繼續介紹Orleans Grain的另一個重要功能：Grain Observer，事件(event)觸發功能。

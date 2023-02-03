@@ -8,28 +8,30 @@ Orleans的Grain除了用 *Request - Response* 的非同步RPC機制來溝通之�
 
 而且很重要的是，Observer的事件訂閱架構無法讓Grain在Silo故障之後該Grain執行實體被轉移到其他Silo執行的情況下，繼續接收事件通知。
 
-原本官方在 v3.0正式發行時建議將Observer的API淘汰，全改為事件流的機制，但後來還是繼續支援，甚至在[ v7.0在新增一個管理訂閱者的Utility類別](https://github.com/dotnet/orleans/issues/7858) `ObserverManager`：
+原本官方在 v3.0 正式發行時建議將Observer的API淘汰，全改為事件流的機制，但後來還是繼續支援，甚至在[ v7.0 在新增一個管理訂閱者的Utility類別](https://github.com/dotnet/orleans/issues/7858) `ObserverManager`：
 
-在 v7.0的github分支有提供一個內建的ObserverManager類別：
+在 v7.0 的github分支有提供一個內建的ObserverManager類別：
 https://github.com/dotnet/orleans/blob/main/src/Orleans.Core/Utils/ObserverManager.cs
 
-但 v3.x沒有提供，不過可以從官方Github庫 v3.x 分支的測試程式碼拷貝過來使用：
+但 v3.x 沒有提供，不過可以從官方Github庫 v3.x 分支的測試程式碼拷貝過來使用：
 https://github.com/dotnet/orleans/blob/3.x/test/Grains/TestGrains/ObserverManager.cs
 
-替代之前 Orleans v2.x 的 [`ObserverSubscriptionManager<T>`](https://learn.microsoft.com/en-us/dotnet/api/orleans.observersubscriptionmanager-1?view=orleans-2.0) 類別。
+替代之前 Orleans v2.x 的 [`ObserverSubscriptionManager<T>`](https://learn.microsoft.com/dotnet/api/orleans.observersubscriptionmanager-1?view=orleans-2.0) 類別。
 
 ## Observer架構實作
 
-Observer架構的實作，在訊息接收的 C# 介面定義上，需要繼承一個Orleans框架提供的 [`IGrainObserver`](https://learn.microsoft.com/en-us/dotnet/api/orleans.igrainobserver) 介面：
+Observer架構的實作，在訊息接收的 C# 介面定義上，需要繼承一個Orleans框架提供的 [`IGrainObserver`](https://learn.microsoft.com/dotnet/api/orleans.igrainobserver) 介面：
+
 ```csharp
 public interface IConsumer : IGrainObserver
 {
     void ReceiveEvent(string message);
 }
 ```
-介面[`IGrainObserver`](https://learn.microsoft.com/en-us/dotnet/api/orleans.igrainobserver) 其實沒有定義任何方法，只有要求傳送訊息的自定義函式必須是不回傳值的 `void` ，所以上述的 `void ReceiveEvent(string message);` 是自行定義的接收訊息自定義函式，用來接收事件發送者Grain（以下簡稱Producer Grain）發送的訊息。
+介面 [`IGrainObserver`](https://learn.microsoft.com/dotnet/api/orleans.igrainobserver) 其實沒有定義任何方法，只有要求傳送訊息的自定義函式必須是不回傳值的 `void` ，所以上述的 `void ReceiveEvent(string message);` 是自行定義的接收訊息自定義函式，用來接收事件發送者Grain（以下簡稱Producer Grain）發送的訊息。
 
 然後接收訊息的Consumer Grain，實務上還會多提供幾個相關的RPC方法，以便於從接收端來訂閱或取消訂閱事件：
+
 ```csharp
 public interface IConsumerGrain : IGrainWithIntegerKey, IConsumer
 {
@@ -37,13 +39,15 @@ public interface IConsumerGrain : IGrainWithIntegerKey, IConsumer
     Task Unsubscribe();
 }
 ```
-其中那個 `ProducerInfo` 只是個自訂的Data Object，用來儲存當需要訂閱/取消訂閱事件時，需取得Producer Grain的資訊，例如，當Producer Grain是使用 [`IGrainWithIntegerCompoundKey`](https://learn.microsoft.com/en-us/dotnet/api/orleans.igrainwithintegercompoundkey) 這種 數字+字串 的Grain Identifier介面時，就可以定義 `ProducerInfo` 為：
+其中那個 `ProducerInfo` 只是個自訂的Data Object，用來儲存當需要訂閱/取消訂閱事件時，需取得Producer Grain的資訊，例如，當Producer Grain是使用 [`IGrainWithIntegerCompoundKey`](https://learn.microsoft.com/dotnet/api/orleans.igrainwithintegercompoundkey) 這種 *數字 + 字串* 的Grain Identifier介面時，就可以定義 `ProducerInfo` 為：
+
 ```csharp
 public record ProducerInfo(int Id, string Namespace);
 ```
-這邊使用C# 9之後提供的 [*record*](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/records) 型態語法來定義Data Object。
+這邊使用C# 9之後提供的 [*record*](https://learn.microsoft.com/dotnet/csharp/whats-new/tutorials/records) 型態語法來定義Data Object。
 
 所以Consumer Grain的範例實作內容：
+
 ```csharp
 public class EventConsumerGrain : Grain, IConsumerGrain
 {
@@ -87,9 +91,10 @@ public class EventConsumerGrain : Grain, IConsumerGrain
     }
 }
 ```
-當Consumer Grain需要訂閱/取消訂閱事件時，需要使用 [`AsReference<T>()`](https://learn.microsoft.com/en-us/dotnet/api/orleans.grainextensions.asreference) 的擴充方法來取得自身對於其RPC介面的轉型，才能符合下面Producer Grain的訂閱方法中的參數型態，而且，這個擴充方法是將Grain實體物件轉成一個『弱參考([WeakReference](https://learn.microsoft.com/en-us/dotnet/api/system.weakreference-1))』再傳入Producer Grain的方法參數內，避免當Consumer物件結束時無法被Garbage collection，造成記憶體洩漏。
+當Consumer Grain需要訂閱/取消訂閱事件時，需要使用 [`AsReference<T>()`](https://learn.microsoft.com/dotnet/api/orleans.grainextensions.asreference) 的擴充方法來取得自身對於其RPC介面的轉型，才能符合下面Producer Grain的訂閱方法中的參數型態，而且，這個擴充方法是將Grain實體物件轉成一個『弱參考([WeakReference](https://learn.microsoft.com/dotnet/api/system.weakreference-1))』再傳入Producer Grain的方法參數內，避免當Consumer物件結束時無法被Garbage collection，造成記憶體洩漏。
 
 Consumer Grain的訂閱/取消訂閱的實作，實際上就是取得Producer Grain的參考來呼叫其訂閱/取消訂閱的RPC，介面宣告如下：
+
 ```csharp
 public interface ISubscribeProducerGrain : IProducerGrain
 {
@@ -98,9 +103,10 @@ public interface ISubscribeProducerGrain : IProducerGrain
     public Task Unsubscribe(IConsumer consumer);
 }
 ```
-這兩個方法的輸入參數都是前述繼承 [`IGrainObserver`](https://learn.microsoft.com/en-us/dotnet/api/orleans.igrainobserver) 的 `IConsumer`介面。 而繼承的自訂 `IProducerGrain` 介面，是Producer Grain需要有可以觸發執行發送事件動作的方法宣告，等下會提到。
+這兩個方法的輸入參數都是前述繼承 [`IGrainObserver`](https://learn.microsoft.com/dotnet/api/orleans.igrainobserver) 的 `IConsumer` 介面。 而繼承的自訂 `IProducerGrain` 介面，是Producer Grain需要有可以觸發執行發送事件動作的方法宣告，等下會提到。
 
 所以Producer Grain有關於這兩個介面的實作內容如下：
+
 ```csharp
 public class EventProducerGrain : Grain, ISubscribeProducerGrain
 {
@@ -132,9 +138,10 @@ public class EventProducerGrain : Grain, ISubscribeProducerGrain
     }
 }
 ```
-用來負責管理訂閱者物件參考的是前述講的在 Orleans v7 之後會提供的，目前在 Orleans v3.x 可從測試專案抓來用的 `ObserverManager<T>` ，所以就完成了Producer Grain與Consumer Grain之間的訂閱/取消訂閱的實作。
+用來負責管理訂閱者物件參考的是前述講的在 Orleans v7 之後會提供的，目前在 Orleans v3.x 可從其框架原始碼的單元測試專案抓 `ObserverManager<T>` 類別程式碼來用，所以就完成了Producer Grain與Consumer Grain之間的訂閱/取消訂閱的實作。
 
 Producer Grain需要有機制可以執行實際發送事件的動作，我們定義這些觸發動作的方法在 `IProducerGrain` 介面裡：
+
 ```csharp
 public interface IProducerGrain : IGrainWithIntegerCompoundKey
 {
@@ -145,6 +152,7 @@ public interface IProducerGrain : IGrainWithIntegerCompoundKey
 ```
 
 在Producer Grain的實作，使用Grain的計時器(Timer)機制來每秒發送事件，內容如下：
+
 ```csharp
 public class EventProducerGrain : Grain, ISubscribeProducerGrain
 {
@@ -202,7 +210,8 @@ public class EventProducerGrain : Grain, ISubscribeProducerGrain
 ```
 由於有套用那個 `ObserverManager<T>` ，所以在發送事件的時候，只要呼叫 `_observers.Notify(o => o.ReceiveEvent(msg))` 就可以通知所有訂閱者了。
 
-實際套用在 .NET 6 Minimal API：
+實際套用在 .NET 6 Minimal API 的程式碼如下：
+
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
@@ -248,7 +257,7 @@ app.MapGet("/producer_stop", async (IClusterClient clusterClient) =>
 ```
 
 完整範例，含一個單純展示Timer的程式碼在：   
-https://github.com/windperson/OrleansRpcDemo/tree/day18/src/Hosting/Server#rpcdemohostingminimalapi
+<https://github.com/windperson/OrleansRpcDemo/tree/day18/src/Hosting/Server#rpcdemohostingminimalapi>
 
 ---
 
