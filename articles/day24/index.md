@@ -1,3 +1,4 @@
+
 # Orleans Grain的巢狀Transaction範例實作與單元測試
 
 ## Orleans巢狀Transaction範例
@@ -7,7 +8,10 @@
 > 旅行社賣所謂的『機加酒』包裝行程，包含飛機票、住宿、早餐、午餐、晚餐、交通、導遊等等，這些每一個都是機加酒全包行程的必要元素，而這些元素都是由不同的人或商業單位來處理，一定要全部都配合好，否則其中一項預約安排不到，這個包裝行程就等於整個無效。
 
 使用Orleans的Transaction功能來實作這個nested Transaction的Grain RPC呼叫範例，假設在商業邏輯上有如下圖的層次關係：
-```mermaid
+
+<div>
+
+``` mermaid
 stateDiagram
     direction LR
     state "Package Tour" as tp
@@ -34,74 +38,137 @@ stateDiagram
     tp --> Hotel#160;Booking
 ```
 
+</div>
+
 以下我們來用Orleans的nested Transaction來實作這個多層次的巢狀關係
 
 ### 旅行社機加酒行程範例實作
 
-1. 使用昨天建立好的Github專案，新增下列 .NET 專案：
-   | 路徑 | 專案名稱 | 專案類型 | 目標框架 |
-   | :--------- | :-------- | -------- | -------- |
-   | src/Shared | **TravelPackageTour.Interfaces** | 類別庫(class library) | .NET 6.0 |
-   | src/Grains | **TravelPackageTour.Grains** | 類別庫(class library) | .NET 6.0 |
-   | src/Hosting/Client | **TravelPackageTour.Client** | 主控台應用程式(Console App) | .NET 6.0 |
-   | src/Hosting/Server | **TravelPackageTour.Silo** | Worker Service | .NET 6.0 |
-   將這些專案各自加入根目錄 OrleansTransactionDemo.sln 方案的方案資料夾(Solution Folder)中。
-2. 設定專案參考：
+1.  使用昨天建立好的Github專案，新增下列 .NET 專案：
+
+    | 路徑               | 專案名稱                         | 專案類型                    | 目標框架 |
+    |:-------------------|:---------------------------------|-----------------------------|----------|
+    | src/Shared         | **TravelPackageTour.Interfaces** | 類別庫(class library)       | .NET 6.0 |
+    | src/Grains         | **TravelPackageTour.Grains**     | 類別庫(class library)       | .NET 6.0 |
+    | src/Hosting/Client | **TravelPackageTour.Client**     | 主控台應用程式(Console App) | .NET 6.0 |
+    | src/Hosting/Server | **TravelPackageTour.Silo**       | Worker Service              | .NET 6.0 |
+
+    將這些專案各自加入根目錄 OrleansTransactionDemo.sln 方案的方案資料夾(Solution Folder)中。
+
+2.  設定專案參考：
+
     - 將 TravelPackageTour.Interfaces 專案加入到 TravelPackageTour.Client 專案的專案對專案參考(Project reference)中。
     - 將 TravelPackageTour.Interfaces 專案加入到 TravelPackageTour.Grains 專案的專案對專案參考(Project reference)中。
     - 將 TravelPackageTour.Grains 專案加入到 TravelPackageTour.Silo 專案的專案對專案參考(Project reference)中。
-3. 安裝各專案的Nuget套件：
-    | 專案名稱 | 套件名稱 | 套件版本 |
-    | :--- | :--- | :---: |
-    | **TravelPackageTour.Interfaces** | [Microsoft.Orleans.Core.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions) | 3.6.5 
-    | | [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) | 3.6.5 
-    | | | |
-    | **TravelPackageTour.Grains** | [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core) | 3.6.5
-    | | [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) | 3.6.5 
-    | | [Microsoft.Orleans.Transactions](https://www.nuget.org/packages/Microsoft.Orleans.Transactions) | 3.6.5
-    | | | |
-    | **TravelPackageTour.Client** | [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client) | 3.6.5
-    | | [Serilog](https://www.nuget.org/packages/Serilog) | 2.12.0
-    | | [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting) | 5.0.1
-    | | [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console) | 4.1.0
-    | | [Serilog.Sinks.Debug](https://www.nuget.org/packages/Serilog.Sinks.Debug) | 2.0.0
-    | | | |
-    | **TravelPackageTour.Silo** | [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting) | 6.0.1
-    | | [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server) | 3.6.5
-    | | [Serilog](https://www.nuget.org/packages/Serilog) | 2.12.0
-    | | [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting) | 5.0.1
-    | | [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console) | 4.1.0
-    | | [Serilog.Sinks.Debug](https://www.nuget.org/packages/Serilog.Sinks.Debug) | 2.0.0
-4. 撰寫 **TravelPackageDemo.Interfaces** 專案內的程式碼，移除預設產生的 *Class1.cs* 檔案，新增下列程式碼：  
-     **IPackageTourGrain.cs**
-     ```csharp
-     using Orleans;
- 
-     namespace TravelPackageTour.Interfaces;
- 
-     public interface IPackageTourGrain : IGrainWithGuidKey
-     {
-         [Transaction(TransactionOption.Create)]
-         Task BuyPackageTour();
-     }
-     ```
-     **IAttractionsGrain.cs**
-     ```csharp
-     using Orleans;
- 
-     namespace TravelPackageTour.Interfaces;
- 
-     public interface IAttractionsGrain : IGrainWithGuidCompoundKey
-     {
-         [Transaction(TransactionOption.Create)]
-         Task OrderDisneyTicket();
-         
+
+3.  安裝各專案的Nuget套件：
+
+    <table style="width:99%;">
+    <colgroup>
+    <col style="width: 21%" />
+    <col style="width: 71%" />
+    <col style="width: 6%" />
+    </colgroup>
+    <thead>
+    <tr class="header">
+    <th style="text-align: left;">專案名稱</th>
+    <th style="text-align: left;">套件名稱</th>
+    <th style="text-align: left;">套件版本</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: left;"><strong>TravelPackageTour.Interfaces</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions">Microsoft.Orleans.Core.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    </ul></td>
+    <td style="text-align: left;">3.6.5<br />
+    3.6.5</td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: left;"><strong>TravelPackageTour.Grains</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core">Microsoft.Orleans.Core</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Transactions">Microsoft.Orleans.Transactions</a></li>
+    </ul></td>
+    <td style="text-align: left;">3.6.5<br />
+    3.6.5<br />
+    3.6.5</td>
+    </tr>
+    <tr class="odd">
+    <td style="text-align: left;"><strong>TravelPackageTour.Client</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Client">Microsoft.Orleans.Client</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog">Serilog</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Extensions.Hosting">Serilog.Extensions.Hosting</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Sinks.Console">Serilog.Sinks.Console</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Sinks.Debug">Serilog.Sinks.Debug</a></li>
+    </ul></td>
+    <td style="text-align: left;">3.6.5<br />
+    2.12.0<br />
+    5.0.1<br />
+    4.1.0<br />
+    2.0.0<br />
+    </td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: left;"><strong>TravelPackageTour.Silo</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Extensions.Hosting">Microsoft.Extensions.Hosting</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Server">Microsoft.Orleans.Server</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog">Serilog</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Extensions.Hosting">Serilog.Extensions.Hosting</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Sinks.Console">Serilog.Sinks.Console</a></li>
+    <li><a href="https://www.nuget.org/packages/Serilog.Sinks.Debug">Serilog.Sinks.Debug</a></li>
+    </ul></td>
+    <td style="text-align: left;">6.0.1<br />
+    3.6.5<br />
+    2.12.0<br />
+    5.0.1<br />
+    4.1.0<br />
+    2.0.0</td>
+    </tr>
+    </tbody>
+    </table>
+
+4.  撰寫 **TravelPackageDemo.Interfaces** 專案內的程式碼，移除預設產生的 *Class1.cs* 檔案，新增下列程式碼：
+
+    \<\<**IPackageTourGrain.cs**\>\>
+
+    ``` csharp
+    using Orleans;
+
+    namespace TravelPackageTour.Interfaces;
+
+    public interface IPackageTourGrain : IGrainWithGuidKey
+    {
+        [Transaction(TransactionOption.Create)]
+        Task BuyPackageTour();
+    }
+    ```
+
+    \<\<**IAttractionsGrain.cs**\>\>
+    \`\`\`csharp
+    using Orleans;
+
+    namespace TravelPackageTour.Interfaces;
+
+    public interface IAttractionsGrain : IGrainWithGuidCompoundKey
+    {
+    \[Transaction(TransactionOption.Create)\]
+    Task OrderDisneyTicket();
+
          [Transaction(TransactionOption.Create)]
          Task PayNationalParkEntryFee();
-     }
-     ```
-    **IDisneyTicketBoothGrain.cs**
-    ```csharp
+
+    }
+    \`\`\`
+
+    \<\<**IDisneyTicketBoothGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace TravelPackageTour.Interfaces;
@@ -114,8 +181,10 @@ stateDiagram
 
     public record DisneyTicket(Guid ticketId, string ticketName);
     ```
-    **INationalParkOfficeGrain.cs**
-    ```csharp
+
+    \<\<**INationalParkOfficeGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace TravelPackageTour.Interfaces;
@@ -128,8 +197,10 @@ stateDiagram
 
     public record ParkEntry(string EntryId);
     ```
-    **IAirlineTicketAgencyGrain.cs**
-    ```csharp
+
+    \<\<**IAirlineTicketAgencyGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace TravelPackageTour.Interfaces;
@@ -156,8 +227,10 @@ stateDiagram
         public DateTime ArrivalTime { get; init; }
     };
     ```
-    **IHotelBookingGrain.cs**
-    ```csharp
+
+    \<\<**IHotelBookingGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace TravelPackageTour.Interfaces;
@@ -166,38 +239,45 @@ stateDiagram
     {
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<bool> BookingHotelDayOne();
-        
+
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<bool> BookingHotelDayTwo();
-        
+
         [Transaction(TransactionOption.CreateOrJoin)]
         Task<bool> BookingHotelDayThree();
     }
     ```
-    **TicketSoldOutException.cs**
-    ```csharp
+
+    \<\<**TicketSoldOutException.cs**\>\>
+
+    ``` csharp
     namespace TravelPackageTour.Interfaces;
 
     public class TicketSoldOutException : Exception
     {
         public string TicketType { get; }
-        
+
         public TicketSoldOutException(string ticketType) : base($"Ticket type {ticketType} is sold out")
         {
             TicketType = ticketType;
         }
     }
     ```
-5. 撰寫 **TravelPackageDemo.Grains** 專案內的程式碼，移除預設產生的 *Class1.cs* 檔案，新增下列程式碼：  
-    **Usings.cs**
-    ```csharp
+
+5.  撰寫 **TravelPackageDemo.Grains** 專案內的程式碼，移除預設產生的 *Class1.cs* 檔案，新增下列程式碼：
+
+    \<\<**Usings.cs**\>\>
+
+    ``` csharp
     global using Microsoft.Extensions.Logging;
     global using Orleans;
     global using Orleans.Transactions.Abstractions;
     global using TravelPackageTour.Interfaces;
     ```
-    **AirlineTicketAgencyGrain.cs**
-    ```csharp
+
+    \<\<**AirlineTicketAgencyGrain.cs**\>\>
+
+    ``` csharp
     using System.Transactions;
 
     namespace TravelPackageTour.Grains;
@@ -281,6 +361,7 @@ stateDiagram
     }
     ```
 
+
 
 ## Orleans Transaction單元測試
 

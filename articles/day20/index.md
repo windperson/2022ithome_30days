@@ -1,25 +1,56 @@
-#  Orleans Steam範例專案實作
+
+# Orleans Steam範例專案實作
 
 ## RPC介面與Grain實作
 
-1. 在[前天進度的git專案](https://github.com/windperson/OrleansRpcDemo/tree/day18)中，分別建立新的RPC介面專案和Grain實作專案：
-    
-    | 路徑 | 專案名稱 | 專案類型 |
-    |---------- | :-------- | -------- |
+1.  在[前天進度的git專案](https://github.com/windperson/OrleansRpcDemo/tree/day18)中，分別建立新的RPC介面專案和Grain實作專案：
+
+    | 路徑       | 專案名稱 \| 專案類型                |                              |
+    |:-----------|:------------------------------------|:----------------------------:|
     | src/Shared | **RpcDemo.Interfaces.EventStreams** | .NET 6 類別庫(class library) |
-    | src/Grains | **RpcDemo.Grains.EventStreams** | .NET 6 類別庫(class library) |
+    | src/Grains | **RpcDemo.Grains.EventStreams**     | .NET 6 類別庫(class library) |
 
     將這兩個專案各自加入根目錄的Orleans.sln方案的Shared以及Grains方案資料夾(Solution Folder)中。
-2. 將 **RpcDemo.Interfaces.EventStreams** 加入至 **RpcDemo.Grains.EventStreams** 專案的專案對專案參考(project-to-project reference)中。
-3. 各專案要安裝的Nuget套件：
-    
-    | 專案名稱 | 需安裝Nuget套件 |
-    | :---------- | :-------- |
-    | **RpcDemo.Interfaces.EventStreams** | [Microsoft.Orleans.Core.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions) 、 [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) |
-    | **RpcDemo.Grains.EventStreams** |[Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions) 、 [Microsoft.Orleans.Runtime.Abstractions](https://www.nuget.org/packages/Microsoft.Orleans.Runtime.Abstractions) 、  [Microsoft.Orleans.Core](https://www.nuget.org/packages/Microsoft.Orleans.Core) 、 [Microsoft.Orleans.CodeGenerator.MSBuild](https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild) |
-4. 將 **RpcDemo.Interfaces.EventStreams** 專案中，移除預設專案範本產的 *Class1.cs*，新增C#程式碼檔案：  
-    **IProducerGrain.cs**：
-    ```csharp
+
+2.  將 **RpcDemo.Interfaces.EventStreams** 加入至 **RpcDemo.Grains.EventStreams** 專案的專案對專案參考(project-to-project reference)中。
+
+3.  各專案要安裝的Nuget套件：
+
+    <table>
+    <colgroup>
+    <col style="width: 23%" />
+    <col style="width: 76%" />
+    </colgroup>
+    <thead>
+    <tr class="header">
+    <th style="text-align: left;">專案名稱</th>
+    <th style="text-align: left;">需安裝Nuget套件</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="odd">
+    <td style="text-align: left;"><strong>RpcDemo.Interfaces.EventStreams</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core.Abstractions">Microsoft.Orleans.Core.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    </ul></td>
+    </tr>
+    <tr class="even">
+    <td style="text-align: left;"><strong>RpcDemo.Grains.EventStreams</strong></td>
+    <td style="text-align: left;"><ul>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions">Microsoft.Extensions.Logging.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Runtime.Abstractions">Microsoft.Orleans.Runtime.Abstractions</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.Core">Microsoft.Orleans.Core</a></li>
+    <li><a href="https://www.nuget.org/packages/Microsoft.Orleans.CodeGenerator.MSBuild">Microsoft.Orleans.CodeGenerator.MSBuild</a></li>
+    </ul></td>
+    </tr>
+    </tbody>
+    </table>
+
+4.  將 **RpcDemo.Interfaces.EventStreams** 專案中，移除預設專案範本產的 *Class1.cs*，新增C#程式碼檔案：  
+    \<\<**IProducerGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace RpcDemo.Interfaces.EventStreams;
@@ -31,9 +62,11 @@
         Task StopProducing();
     }
     ```
-    這都是自定義的RPC方法，`StartProducing()`方法會開始產生訊息寫進事件流，`StopProducing()`方法會停止產生訊息。
-    **IManualConsumerGrain.cs**：
-    ```csharp
+
+    這都是自定義的RPC方法，`StartProducing()`方法會開始產生訊息寫進事件流，`StopProducing()`方法會停止產生訊息。  
+    \<\<**IManualConsumerGrain.cs**\>\>
+
+    ``` csharp
     using Orleans;
 
     namespace OrleansStreamingDemo.Grains.Interfaces;
@@ -45,9 +78,11 @@
         Task UnSubscribe();
     }
     ```
+
     這裡定義顯式訂閱訊息的RPC方法，`Subscribe()`方法會訂閱指定的事件流，`UnSubscribe()`方法會取消訂閱。  
-    **StreamDto.cs**
-    ```csharp
+    \<\<**StreamDto.cs**\>\>
+
+    ``` csharp
     namespace RpcDemo.Interfaces.EventStreams;
 
     [Serializable]
@@ -58,11 +93,14 @@
         public const string DefaultStreamProviderName = "MyDefaultStreamProvider";
     }
     ```
+
     此為定義事件流的資料型別，並定義預設的事件流提供者(Stream Provider)名稱。
-5. 建立事件流的Producer實作：  
-   將 **RpcDemo.Grains.EventStreams** 專案中，移除預設專案範本產的 *Class1.cs*，新增C#程式碼檔案：  
-    **ProducerGrain.cs**
-    ```csharp
+
+5.  建立事件流的Producer實作：  
+    將 **RpcDemo.Grains.EventStreams** 專案中，移除預設專案範本產的 *Class1.cs*，新增C#程式碼檔案：  
+    \<\<**ProducerGrain.cs**\>\>
+
+    ``` csharp
     using Microsoft.Extensions.Logging;
     using Orleans;
     using Orleans.Streams;
@@ -143,12 +181,15 @@
         }
     }
     ```
-    在開始製造事件流訊息的RPC方法 `StartProducing()` 實作中，首先利用 `GetStreamProvider(..).GetStream<StreamDto>(...)`的API取得Stream的參考之後，使用Grain的Timer機制，每秒產生一筆訊息，並寫進事件流中。  
-    而在停止製造事件流訊息的RPC方法 `StopProducing()` 實作中，則是針對Timer的參考呼叫 `Dispose()`方法以便停止Timer，然後呼叫 `OnCompletedAsync()`方法，來結束事件流的寫入。但[由於歷史因素，新的Stream Provider其實已經不需要呼叫 `OnCompletedAsync()`方法](https://github.com/dotnet/orleans/issues/7059#issuecomment-823645203)，為了此Grain在執行時保持對於不同種Stream Provider的相容性，我們這邊還是呼叫這個方法，只是用 `try..catch` 包起來。
-6. 建立事件流的顯式訂閱Consumer實作：  
-   將 **RpcDemo.Grains.EventStreams** 專案，新增C#程式碼檔案：  
-   **ManualConsumerGrain.cs**
-    ```csharp
+
+    在開始製造事件流訊息的RPC方法 `StartProducing()` 實作中，首先利用 `GetStreamProvider(..).GetStream<StreamDto>(...)` 的API取得Stream的參考之後，使用Grain的Timer機制，每秒產生一筆訊息，並寫進事件流中。  
+    而在停止製造事件流訊息的RPC方法 `StopProducing()` 實作中，則是針對Timer的參考呼叫 `Dispose()` 方法以便停止Timer，然後呼叫 `OnCompletedAsync()` 方法，來結束事件流的寫入。但[由於歷史因素，新的Stream Provider其實已經不需要呼叫 `OnCompletedAsync()`方法](https://github.com/dotnet/orleans/issues/7059#issuecomment-823645203)，為了此Grain在執行時保持對於不同種Stream Provider的相容性，我們這邊還是呼叫這個方法，只是用 `try..catch` 包起來。
+
+6.  建立事件流的顯式訂閱Consumer實作：  
+    將 **RpcDemo.Grains.EventStreams** 專案，新增C#程式碼檔案：  
+    \<\<**ManualConsumerGrain.cs**\>\>
+
+    ``` csharp
     using Microsoft.Extensions.Logging;
     using Orleans;
     using Orleans.Runtime;
@@ -221,32 +262,42 @@
         }
     }
     ```
+
     在這裡由於是顯式訂閱的寫法，因此需要在 `OnActivateAsync()` 方法中，將之前訂閱stream時的自訂邏輯常式恢復回來，所以當此Grain有訂閱事件流時，將取得stream用的資訊以 `StreamInfo` 資料結構存放在Grain狀態中，並且在 `OnActivateAsync()` 方法中，假如有存在這些資訊，就依此取得stream，並且呼叫 `GetAllSubscriptionHandles()` 方法，取得此Grain對於該stream所有的訂閱handle，最後呼叫 `ResumeAsync()` 方法，恢復訂閱事件流的動作。
 
+
 
 ## 測試專案驗證Grain-to-Grain事件流功能
 
-1. 在 *tests* 目錄下建立用xUnit的測試專案 **EventStream.Tests**，安裝或更新下列Nuget套件：
-   - [coverlet.collector](https://www.nuget.org/packages/coverlet.collector)
-   - [ILogger.Moq](https://www.nuget.org/packages/ILogger.Moq) 
-   - [Microsoft.NET.Test.Sdk](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/)
-   - [Microsoft.Orleans.TestingHost](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost) 
-   - [Moq](https://www.nuget.org/packages/Moq)
-   - [xunit](https://www.nuget.org/packages/xunit)
-   - [xunit.runner.visualstudio](https://www.nuget.org/packages/xunit.runner.visualstudio)
-   - [xunit.runner.console](https://www.nuget.org/packages/xunit.runner.console)
-2. 將此專案加入根目錄的Orleans.sln方案的 *tests* 方案資料夾(Solution Folder)中。
-3. 將 **RpcDemo.Grains.EventStreams** 專案加入至此測試專案的專案對專案參考(project-to-project reference)中。
-4. 將專案中預設產生的 *Using.cs* 檔案，修改如下：
-    ```csharp
+1.  在 *tests* 目錄下建立用xUnit的測試專案 **EventStream.Tests**，安裝或更新下列Nuget套件：
+
+    - [coverlet.collector](https://www.nuget.org/packages/coverlet.collector)
+    - [ILogger.Moq](https://www.nuget.org/packages/ILogger.Moq)
+    - [Microsoft.NET.Test.Sdk](https://www.nuget.org/packages/Microsoft.NET.Test.Sdk/)
+    - [Microsoft.Orleans.TestingHost](https://www.nuget.org/packages/Microsoft.Orleans.TestingHost)
+    - [Moq](https://www.nuget.org/packages/Moq)
+    - [xunit](https://www.nuget.org/packages/xunit)
+    - [xunit.runner.visualstudio](https://www.nuget.org/packages/xunit.runner.visualstudio)
+    - [xunit.runner.console](https://www.nuget.org/packages/xunit.runner.console)
+
+2.  將此專案加入根目錄的Orleans.sln方案的 *tests* 方案資料夾(Solution Folder)中。
+
+3.  將 **RpcDemo.Grains.EventStreams** 專案加入至此測試專案的專案對專案參考(project-to-project reference)中。
+
+4.  將專案中預設產生的 *Using.cs* 檔案，修改如下：
+
+    ``` csharp
     global using Xunit;
     global using Microsoft.Extensions.Configuration;
     global using Microsoft.Extensions.DependencyInjection;
     global using Microsoft.Extensions.Logging;
     ```
+
     先將一些一定會用到的namespace引用加入到全域範圍中，以方便測試程式撰寫。
-5. 將此測試專案中的 *UnitTest1.cs* 刪除，新增一個 *ManualConsumerGrainTest.cs*，內容如下：
-    ```csharp
+
+5.  將此測試專案中的 *UnitTest1.cs* 刪除，新增一個 *ManualConsumerGrainTest.cs*，內容如下：
+
+    ``` csharp
     using Moq;
     using Orleans;
     using Orleans.Hosting;
@@ -339,14 +390,17 @@
         }
     }
     ```
+
     這個測試類別的程式碼內容中使用了2個技巧：
-    1. 使用 [**ILogger.Moq**](https://github.com/adrianiftode/moq.ilogger) 套件提供的功能，來檢驗 `ManualConsumerGrain` 是否有正確的寫log，也就是有接收到事件流訊息（這需要包裝成LoggerFactory的形式，然後在Silo依賴注入，如此在Grain的建構子才能產生用此套件的Logger實體）。  
-    2. 由於原本 `ProducerGrain` 的stream訊息產生機制是用一秒執行一次的Timer來發送，所以在TestSilo的初始配置程式碼中，塞入一個Mock的 [`ITimerRegistry`](https://learn.microsoft.com/en-us/dotnet/api/orleans.timers.itimerregistry) 依賴注入服務。   
-    （因為當Grain要呼叫RegisterTimer的API新增Timer時，實際上底層都會透過Orleans的底層TimerRegistry來跟Orleans Runtime註冊，讓Timer時間到時，由Orleans Runtime觸發執行）  
-    這樣當ProducerGrain的Timer建立時，就能將Timer執行的方法內容用Moq框架提供的callback API，來取得可呼叫的參考實體，以便等下在測試方法的實作程式碼中，手動呼叫Timer的Tick方法來強制產生事件流訊息，如此就能在測試方法中手動控制訊息產生，以此來檢驗Consumer端有正確接收到訊息。
+
+    1.  使用 [**ILogger.Moq**](https://github.com/adrianiftode/moq.ilogger) 套件提供的功能，來檢驗 `ManualConsumerGrain` 是否有正確的寫log，也就是有接收到事件流訊息（這需要包裝成LoggerFactory的形式，然後在Silo依賴注入，如此在Grain的建構子才能產生用此套件的Logger實體）。  
+    2.  由於原本 `ProducerGrain` 的stream訊息產生機制是用一秒執行一次的Timer來發送，所以在TestSilo的初始配置程式碼中，塞入一個Mock的 [`ITimerRegistry`](https://learn.microsoft.com/en-us/dotnet/api/orleans.timers.itimerregistry) 依賴注入服務。  
+        （因為當Grain要呼叫RegisterTimer的API新增Timer時，實際上底層都會透過Orleans的底層TimerRegistry來跟Orleans Runtime註冊，讓Timer時間到時，由Orleans Runtime觸發執行）  
+        這樣當ProducerGrain的Timer建立時，就能將Timer執行的方法內容用Moq框架提供的callback API，來取得可呼叫的參考實體，以便等下在測試方法的實作程式碼中，手動呼叫Timer的Tick方法來強制產生事件流訊息，如此就能在測試方法中手動控制訊息產生，以此來檢驗Consumer端有正確接收到訊息。
 
 注意：當使用Orleans提供的In-Memory Stream Provider時，**需要額外多配置一個In-Memory的Grain Storage 來儲存訊息，而且一定要將Provider名稱定為 `PubSubStore`**，否則會出現錯誤訊息，所以需要的配置程式碼如下：
-```csharp
+
+``` csharp
 siloBuilder
     .AddMemoryGrainStorage("PubSubStore")
     .AddMemoryStreams<DefaultMemoryMessageBodySerializer>("Provider Name configured in Grain");
@@ -354,29 +408,39 @@ siloBuilder
 
 然後就可以執行測試，如果測試通過，就表示有接收到事件流訊息。
 
+
+
 ## 建立使用Azure Queue Storage作為Stream Provider的Silo Worker Service程式
 
 ### 建立執行Silo的Worker Service專案
 
-1. 在git專案的根目錄使用命令列建立一個新的Worker Service專案 **RpcDemo.Hosting.Worker** 到 *src/Hosting/Server*目錄內：
-    ```shell
+1.  在git專案的根目錄使用命令列建立一個新的Worker Service專案 **RpcDemo.Hosting.Worker** 到 *src/Hosting/Server* 目錄內：
+
+    ``` shell
     dotnet new worker --no-restore --name RpcDemo.Hosting.Worker --output src/Hosting/Server/RpcDemo.Hosting.Worker
     ```
+
     將此專案加入根目錄的Orleans.sln方案的 *Hosting/Server* 方案資料夾(Solution Folder)中：
-    ```shell
+
+    ``` shell
     dotnet sln add ./src/Hosting/Server/RpcDemo.Hosting.Worker/RpcDemo.Hosting.Worker.csproj --solution-folder Hosting/Server
     ```
-2. 將 **RpcDemo.Grains.EventStreams** 專案加入至此專案的專案對專案參考(project-to-project reference)中。
-3. 安裝/更新下列Nuget套件至此專案中：
-   * [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting)
-   * [Microsoft.Orleans.Persistence.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage)
-   * [Microsoft.Orleans.Streaming.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage)
-   * [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server)
-   * [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting/)
-   * [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console)
-   * [Serilog.Sinks.Debug](https://www.nuget.org/packages/Serilog.Sinks.Debug)
-4. 將專案中的 *Worker.cs* 檔刪除，修改 **Program.cs** 檔為下列內容：
-    ```csharp
+
+2.  將 **RpcDemo.Grains.EventStreams** 專案加入至此專案的專案對專案參考(project-to-project reference)中。
+
+3.  安裝/更新下列Nuget套件至此專案中：
+
+    - [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting)
+    - [Microsoft.Orleans.Persistence.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Persistence.AzureStorage)
+    - [Microsoft.Orleans.Streaming.AzureStorage](https://www.nuget.org/packages/Microsoft.Orleans.Streaming.AzureStorage)
+    - [Microsoft.Orleans.Server](https://www.nuget.org/packages/Microsoft.Orleans.Server)
+    - [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting/)
+    - [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console)
+    - [Serilog.Sinks.Debug](https://www.nuget.org/packages/Serilog.Sinks.Debug)
+
+4.  將專案中的 *Worker.cs* 檔刪除，修改 **Program.cs** 檔為下列內容：
+
+    ``` csharp
     using Microsoft.Extensions.Options;
     using Orleans;
     using Orleans.Configuration;
@@ -424,28 +488,37 @@ siloBuilder
         .Build();
 
     await host.RunAsync();
-   ```
-   這邊要注意的是，由於Azure Queue Storage的名稱合法字元是英數字大小寫以及"-"，而Orleans的Stream Provider會將Silo ClusterOption中設定的ServiceId納入到Azure Queue Storage的名稱中，所以在此範例中，ServiceId設定不能使用到Azure Queue Storage不容許的字元。  
-   還有AzureQueueStorage跟In-Memory Storage一樣，也需要有個叫 **PubSubStore** 的Grain Storage Provider也配置才能正常作用，所以這裡也配置了一個Azure Table Storage的Provider供Stream provider使用。
+    ```
+
+    這邊要注意的是，由於Azure Queue Storage的名稱合法字元規則是英數字大小寫以及『-』符號，而Orleans的Stream Provider會將Silo ClusterOption中設定的ServiceId納入到Azure Queue Storage的名稱中，所以在此範例中，ServiceId設定不能使用到Azure Queue Storage不容許的字元。  
+    還有AzureQueueStorage跟In-Memory Storage一樣，也需要有個叫 **PubSubStore** 的Grain Storage Provider也配置才能正常作用，所以這裡也配置了一個Azure Table Storage的Provider供Stream provider使用。
 
 ### 建立呼叫的Client端Console專案
 
-1. 在git專案的根目錄建立一個新的Console專案 **RpcDemo.Client.StreamConsole** 在 *src/Hosting/Client*目錄下：
-    ```shell
+1.  在git專案的根目錄建立一個新的Console專案 **RpcDemo.Client.StreamConsole** 在 *src/Hosting/Client* 目錄下：
+
+    ``` shell
     dotnet new console --framework net6.0 --no-restore --name RpcDemo.Client.StreamConsole --output src/Hosting/Client/RpcDemo.Client.StreamConsole
     ```
+
     將此專案加入根目錄的Orleans.sln方案的 *Hosting/Client* 方案資料夾(Solution Folder)中：
-    ```shell
+
+    ``` shell
     dotnet sln add ./src/Hosting/Client/RpcDemo.Client.StreamConsole/RpcDemo.Client.StreamConsole.csproj --solution-folder Hosting/Client
     ```
-2. 將 **RpcDemo.Interfaces.EventStreams** 專案加入至此專案的專案對專案參考(project-to-project reference)中。
-3. 安裝/更新下列Nuget套件至此專案中：
-    * [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client)
-    * [Serilog](https://www.nuget.org/packages/Serilog)
-    * [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting)
-    * [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console)
-4. 專案中的 **Program.cs** 的內容修改為如下：
-    ```csharp
+
+2.  將 **RpcDemo.Interfaces.EventStreams** 專案加入至此專案的專案對專案參考(project-to-project reference)中。
+
+3.  安裝/更新下列Nuget套件至此專案中：
+
+    - [Microsoft.Orleans.Client](https://www.nuget.org/packages/Microsoft.Orleans.Client)
+    - [Serilog](https://www.nuget.org/packages/Serilog)
+    - [Serilog.Extensions.Hosting](https://www.nuget.org/packages/Serilog.Extensions.Hosting)
+    - [Serilog.Sinks.Console](https://www.nuget.org/packages/Serilog.Sinks.Console)
+
+4.  專案中的 **Program.cs** 的內容修改為如下：
+
+    ``` csharp
     using Orleans;
     using Orleans.Configuration;
     using RpcDemo.Interfaces.EventStreams;
@@ -504,8 +577,10 @@ siloBuilder
     Console.ReadKey();
     await client.Close();
     ```
-6. 將 **.vscode/tasks.json** 設定檔內新增此Stream範例專案的Server和Client建置設定：
-    ```json
+
+5.  將 **.vscode/tasks.json** 設定檔內新增此Stream範例專案的Server和Client建置設定：
+
+    ``` json
     {
         "version": "2.0.0",
         "tasks": [
@@ -548,8 +623,10 @@ siloBuilder
         ]
     }
     ```
-7. 將 **.vscode/launch.json** 設定檔內新增此Stream範例專案的Server和Client除錯設定：
-    ```json
+
+6.  將 **.vscode/launch.json** 設定檔內新增此Stream範例專案的Server和Client除錯設定：
+
+    ``` json
     {
         "version": "0.2.0",
         "configurations": [
@@ -583,13 +660,14 @@ siloBuilder
         ]
     }
     ```
+
 在本機端執行Azurite Local Storage Emulator， 然後在Visual Studio Code依次執行除錯設定 **Launch Stream Silo** 和 **Launch Stream Client**，可以在Visual Studio的 Terminal 和 Debug Console 看到Stream範例的執行結果Log：
+
 ![](./stream_demo.png)
 
+完整範例的程式碼：  
+<https://github.com/windperson/OrleansRpcDemo/tree/day20>
 
-完整範例的程式碼：   
-https://github.com/windperson/OrleansRpcDemo/tree/day20
-
----
+------------------------------------------------------------------------
 
 明天再來繼續介紹事件流Grain的隱式訂閱寫法，以及直接從Client端訂閱事件流的寫法。
