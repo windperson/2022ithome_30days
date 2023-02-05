@@ -10,7 +10,7 @@
 ```mermaid
 %%{ init: { 'flowchart': { 'curve': 'bump' } } }%%
 flowchart LR 
-    subgraph client["&#60;&#60;client side&#62;&#62;"]
+    subgraph client["&lt;&lt; client side &gt;&gt;"]
     registry_client["Registry grain<br/>RPC instance"]
     target_client["Target grain<br/>RPC instance"]
     orleans_client["Orleans Client"]
