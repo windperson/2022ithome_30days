@@ -3,18 +3,26 @@
 ## Cadence Pattern 介紹
 
 [Cadence Pattern](https://github.com/OrleansContrib/DesignPatterns/blob/master/Cadence.md) 基本上就是昨天介紹Dispatcher Pattern的一種特定用途衍生型：利用Orleans Grain的Timer/Reminder功能，將一開始接收Client端外部呼叫的Grain做為緩衝儲存區(buffer)，等到設定的Timer/Reminder觸發後，再將該Grain的暫存資料轉送到後端的Grain進行處理：
+
+::: {.content-visible when-format="markdown"}
 ```mermaid
 flowchart LR
     subgraph server["server (silo)"]
     direction LR
-    grain_1["Dispatcher<br/>grain<br/>(buffer data)"]
-    grain_2[[Target<br/>grain]]
-    grain_1 --> |"send buffered data when<br/>Timer/Reminder triggered"| grain_2
+    grain_1["<strong><font szie=5>Dispatcher</font><br/>grain</strong><br/>(buffer data)"]
+    grain_2[[<strong><font szie=4>Target<br/>grain</font></strong>]]
+    grain_1 --> |"send buffered data<br/><strong>(<i>Timer/Reminder triggered</i>)</strong>"| grain_2
     grain_1 -.-> |"OnActivatedAsync()<br/><br/>Register<br/>Timer/Reminder<br/>"| grain_1
     end
     client("applicaiton / client<br/>code")
     client ==> |"call grain RPC or<br/>External stream input"| grain_1
 ```
+:::
+
+::: {.content-hidden unless-format="docx"}
+![](./mermaid-diagram-01.png)
+:::
+
 這個模式的好處是可以將一開始接收到的外部呼叫或是外部資料流量，先暫存起來，累積到一定的資料量或是每逢固定一段時間後，再將資料一次性轉送到後端的Grain進行處理，這樣可以避免後端Grain被頻繁呼叫而拖累系統整體效能，也可以有效的減少後端Grain讀取/儲存狀態的資料庫存取次數，提升後端Grain的處理效能。
 
 由於Grain有Timer/Reminder這種和一般傳統ASP.NET core MVC Controller/Service類別所沒有的特殊功能，也可利用Cadence Pattern來實作一些得做輸入節流閥(throttle)的需求，例如：IoT應用收集設備資料的即時輸入，游戲/直播應用中的訊息對話系統定時禁言；這些需要把短時間從外部湧流進入系統的暫態資料丟棄，只留下最終有意義資訊的功能。
