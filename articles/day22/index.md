@@ -4,8 +4,9 @@
 ## Orleans ACID Transaction 概述
 
 Orleans的分布式交易(Distributed ACID Transaction)最早的討論出於西元2016年微軟研究院的一個研究論文：
-\> Transactions for Distributed Actors in the Cloud  
-https://www.microsoft.com/en-us/research/publication/transactions-distributed-actors-cloud-2/
+
+> Transactions for Distributed Actors in the Cloud  
+> https://www.microsoft.com/en-us/research/publication/transactions-distributed-actors-cloud-2/
 
 後來在 v3.0 於2019年正式發佈時才成為正式功能，基本上是一個[使用時間戳記(timestamp)來達到『兩階段提交(two-phase commit)』演算法的分布式交易](https://github.com/dotnet/orleans/issues/3369)，符合資料庫ACID特性（Atomicity, Consistency, Isolation, Durability）的支援多個Grain之間聯合RPC呼叫的交易機制。
 
@@ -25,6 +26,8 @@ two-phase commit除了在分散式交易之外，像是MS SQL提供的MS DTC(Mic
 1.  協調者向所有參與者發出準備交易的請求(prepare)，並等待所有參與者回應準備完成。
 2.  當所有參與者都準備完成後，協調者向所有參與者發出確認交易的請求(commit)，並等待所有參與者回應確認完成。
 3.  當協調者確認所有參與者都回應完成後，交易即為成功。
+
+流程示意圖如下：
 
 <div>
 
