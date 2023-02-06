@@ -224,3 +224,5 @@ siloBuilder.AddAzureBlobGrainStorage(
 ---
 
 明天會繼續介紹當正式環境的雲端Azure Table/Blob Storage使用 ["受控識別(Managed Identity)"](https://learn.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview) 控制Azure雲端存取權限以便保護重要資料時，Orleans 的Silo要如何設定Table/Blob Storage Provider。
+
+{{< pagebreak >}}

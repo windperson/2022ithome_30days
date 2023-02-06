@@ -59,3 +59,7 @@ Orleans是以Nuget套件方式發佈，我們可以在自己的開發電腦上�
 
 目前要使用 Orleans POCO Grain 的方式開發的話，需要使用 .NET 7 RC2 SDK 以上的版本，並使用 Orleans v7 RC2 版本的 Nuget 套件，或是自行從GitHub程式碼 main 分支建置 v7 版的除錯版 Nuget 套件。
 
+
+---
+
+{{< pagebreak >}}

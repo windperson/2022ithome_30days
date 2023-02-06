@@ -314,3 +314,9 @@ stateDiagram
 ## Orleans Transaction單元測試
 
 Orleans的Transaction要寫單元測試驗證時，官方提供一個Nuget套件：[**Microsoft.Orleans.Transactions.TestKit.xUnit**](https://www.nuget.org/packages/Microsoft.Orleans.Transactions.TestKit.xUnit)，可用來輔助使用xUnit的測試框架時撰寫單元測試，以下介紹如何使用。
+
+---
+
+明天來介紹如何自己建置Orleans的核心程式碼，以及Orleans v7 之後新增的 "POCO Grain" 的寫法。
+
+{{< pagebreak >}}

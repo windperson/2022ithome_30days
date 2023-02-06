@@ -186,3 +186,5 @@ SiloBuilder.UseDashboard(options => {
 ---
 
 明天來介紹Orleans的一個最廣泛利用的系統架構：Smart Cache Pattern和部署在Azure App Service上的短網址服務範例。
+
+{{< pagebreak >}}

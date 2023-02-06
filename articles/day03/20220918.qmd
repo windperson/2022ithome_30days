@@ -92,3 +92,5 @@ public class HelloGrain : Grain, IHelloGrain
 ---
 
 如此我們就完成了一個最簡單的Hello World的Grain元件，它會在其 `SayHello()` RPC方法被呼叫之後回傳{`Hello 原本輸入的字串!`}，至於接下來這Grain要如何使用，請待明日講解。
+
+{{< pagebreak >}}

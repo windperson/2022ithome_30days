@@ -57,3 +57,5 @@ public class MyWorker : Grain, ...
 ---
 
 明天來介紹如何套用Polly的Retry Policy來處理當Grain的RPC呼叫時的連線狀態不穩定問題，以及一些Silo配置程式碼的注意事項。
+
+{{< pagebreak >}}

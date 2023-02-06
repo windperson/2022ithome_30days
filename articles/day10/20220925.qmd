@@ -238,3 +238,5 @@ Orleans提供的Grain State狀態資料存取在Grain生命週期的 ***Activati
 ---
 
 明天繼續介紹另外兩種官方提供的Storage Provider：Azure Blob/Table Storage使用方法，以及其他Grain State在程式碼撰寫時的注意事項。
+
+{{< pagebreak >}}

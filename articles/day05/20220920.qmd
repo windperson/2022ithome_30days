@@ -115,3 +115,5 @@ var hostBuilder = new HostBuilder().UseOrleans(siloBuilder =>{
 ---  
 
 RPC Code Gen的介紹終於完了，感謝大家的耐心，明天會繼續介紹如何將昨天建立的Orleans專案安裝對應的Nuget套件和實際跑起來的步驟，以及如何呼叫Orleans的RPC方法，敬請期待。
+
+{{< pagebreak >}}

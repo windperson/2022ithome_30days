@@ -262,3 +262,5 @@ app.MapGet("/producer_stop", async (IClusterClient clusterClient) =>
 ---
 
 明天來繼續介紹Orleans的另一個非同步程式設計模式：事件流(Streams)。
+
+{{< pagebreak >}}

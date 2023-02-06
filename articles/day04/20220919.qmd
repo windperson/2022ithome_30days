@@ -147,3 +147,5 @@ dotnet sln add .\src\Hosting\Client\RpcDemo.Client.Console\RpcDemo.Client.Consol
 ---
 
 接下來就是為每個C#專案安裝對應Orleans各元件的Nuget套件以及撰寫程式碼，這還有些Orleans所謂的『[RPC Stub Code Generation](https://learn.microsoft.com/en-us/dotnet/orleans/grains/code-generation)』的細節要注意，所以，明天繼續。
+
+{{< pagebreak >}}

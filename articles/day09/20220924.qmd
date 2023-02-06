@@ -283,3 +283,5 @@ Orleans的Grain實作專案可以使用.NET Core/.NET5的依賴注入(Dependency
 ---
 
 明天將繼續介紹Orleans最特殊的Grain State狀態儲存功能，敬請期待。
+
+{{< pagebreak >}}

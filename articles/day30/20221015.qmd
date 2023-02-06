@@ -98,3 +98,5 @@ OrleansDashboard 由於在Azure Web App上，已經都有預設的Web Server程�
 ---
 
 明天來介紹另一個Orleans的Dispatcher Pattern架構模式和其範例。
+
+{{< pagebreak >}}

@@ -54,3 +54,6 @@ Reduce Pattern常用在一些類似統計數字的需求用途，例如游戲系
 
 ## Reduce Pattern範例
 
+---
+
+{{< pagebreak >}}

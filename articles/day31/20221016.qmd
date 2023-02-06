@@ -37,3 +37,5 @@ flowchart LR
 ## Dispatch Pattern 應用範例
 
 以下用一個網頁投票範例，來說明如何使用Dispatcher Pattern來實作投票系統。
+
+{{< pagebreak >}}

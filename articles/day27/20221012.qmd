@@ -94,3 +94,7 @@ Client端的Filter，實作 `IOutgoingGrainCallFilter` 介面的自定義類別�
 ## Filter實作範例
 
 我們把昨天實作的GrainService記錄特定Grain執行記錄的功能，原本在Grain方法實作裡去呼叫GrainService的方式，改為由Filter來實現。
+
+---
+
+{{< pagebreak >}}

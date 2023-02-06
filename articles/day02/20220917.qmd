@@ -69,3 +69,5 @@ Orleans框架提供的API基本單元，對應到Virtual Actor Model的，有以
 ---
 
 對於Grains的詳細組成結構和物件宣告的實際程式碼寫法，明天繼續介紹(終於要捲起袖子開幹了)。
+
+{{< pagebreak >}}

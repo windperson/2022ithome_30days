@@ -257,3 +257,5 @@ public static bool IsRunningInContainer()
 ---
 
 下一篇介紹使用包裝成自製docker image，也就是容器影像檔的方法來部署Orleans應用到Azure雲端。
+
+{{< pagebreak >}}

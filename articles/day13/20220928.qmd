@@ -76,3 +76,5 @@ options.ConnectionString = "Server=tcp:<my-sql-server>.database.windows.net;Auth
 ---
 
 今天講述的都是Windows Only環境，有點不公平，而且原本 .NET 6上使用Orleans就是跨Windows/macOS/Linux這三種OS的，明天繼續介紹如何使用ADO.NET Storage Provider在另一個跨平台的開源PostgreSQL資料庫來儲存Grain State。
+
+{{< pagebreak >}}

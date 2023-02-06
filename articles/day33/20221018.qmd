@@ -40,3 +40,7 @@ Observer Pattern可用來實作對話聊天系統的後端訊息轉交發送機�
 ## Observer Pattern 應用範例：以ASP.NET Core SignalR/Azure SignalR串接的對話聊天系統
 
 以下以一個簡易對話聊天系統範例的實作，介紹如何以Orleans的Stream功能和 ASP.NET Core SignalR / Azure SignalR 串接，來實現Observer Pattern的系統架構。
+
+---
+
+{{< pagebreak >}}

@@ -79,3 +79,5 @@ flowchart LR
 ---
 
 至於Orleans Stream 在Silo的運營配置方面要怎麼做，明天以實作Orleans Steam的範例專案的方式來展示使用Azure Queue Storage作為Stream Provider。
+
+{{< pagebreak >}}

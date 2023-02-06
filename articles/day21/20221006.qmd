@@ -344,3 +344,5 @@ Orleans RPC Client端訂閱事件流的程式碼寫法，就是在Client端呼�
 ---
 
 明天來說明Orleans v3.x 版最新提供的功能：Grain RPC的Transaction機制。
+
+{{< pagebreak >}}
