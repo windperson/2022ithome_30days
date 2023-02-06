@@ -1,13 +1,16 @@
 ---
+# use following command to generate merged docx file
+# quarto render --profile book --to "docx"
 title: Microsoft Orleans雲原生開發框架從小白到大神
 author: 鮑承佑
 
 toc-title: 全文目錄
-toc-depth: 1
+toc-depth: 2
 ---
+
+### 鐵人賽資料 {.unnumbered .unlisted}
 
 - 系列文組別：Software Development
 - 獎項：佳作
 - 中文姓名：鮑承佑
 - 主題：Microsoft Orleans雲原生開發框架從小白到大神
-
