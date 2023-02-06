@@ -1,5 +1,6 @@
 project:
   type: book
+  output-dir: "../_merged"
 book:
   title: "Microsoft Orleans雲原生開發框架從小白到大神"
   author: "鮑承佑"
