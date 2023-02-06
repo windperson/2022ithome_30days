@@ -1,0 +1,45 @@
+project:
+  type: book
+book:
+  title: "Microsoft Orleans雲原生開發框架從小白到大神"
+  author: "鮑承佑"
+  chapters:
+    - index.qmd
+    - day01/20220916.qmd
+    - day02/20220917.qmd
+    - day03/20220918.qmd
+    - day04/20220919.qmd
+    - day05/20220920.qmd
+    - day06/20220921.qmd
+    - day07/20220922.qmd
+    - day08/20220923.qmd
+    - day09/20220924.qmd
+    - day10/20220925.qmd
+    - day11/20220926.qmd
+    - day12/20220927.qmd
+    - day13/20220928.qmd
+    - day14/20220929.qmd
+    - day15/20220930.qmd
+    - day16/20221001.qmd
+    - day17/20221002.qmd
+    - day18/20221003.qmd
+    - day19/20221004.qmd
+    - day20/20221005.qmd
+    - day21/20221006.qmd
+    - day22/20221007.qmd
+    - day23/20221008.qmd
+    - day24/20221009.qmd
+    - day25/20221010.qmd
+    - day26/20221011.qmd
+    - day27/20221012.qmd
+    - day28/20221013.qmd
+    - day29/20221014.qmd
+    - day30/20221015.qmd
+    - day31/20221016.qmd
+    - day32/20221017.qmd
+    - day33/20221018.qmd
+    - day34/20221019.qmd
+    - day35/20221020.qmd
+    - day36/20221021.qmd
+    - day37/20221107.qmd
+    - day38/20221207.qmd
