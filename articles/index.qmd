@@ -1,11 +1,11 @@
 ---
-# use following command to generate merged docx file
-# quarto render --profile book --to "docx"
-title: Microsoft Orleans雲原生開發框架從小白到大神
-author: 鮑承佑
+#
+# Command to generate merged docx file:
+# quarto render --profile merged --to "docx"
+#
 
 toc-title: 全文目錄
-toc-depth: 2
+toc-depth: 3
 ---
 
 ### 鐵人賽資料 {.unnumbered .unlisted}

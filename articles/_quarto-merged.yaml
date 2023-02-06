@@ -43,3 +43,8 @@ book:
     - day36/20221021.qmd
     - day37/20221107.qmd
     - day38/20221207.qmd
+
+format:
+  docx:
+    standalone: true
+    crossref: false
